@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบดึงและแสดงผลข้อมูลสุขภาพ MOPH Open Data</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        moph: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                            dark: '#0a2926'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Prompt', 'Sarabun', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Prompt & Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Prompt', 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-gradient-to-r from-moph-900 via-moph-800 to-moph-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2.5 rounded-xl backdrop-blur-md border border-white/20 shadow-inner">
+                    <i class="fa-solid fa-hospital-user text-2xl text-teal-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-tight">ระบบดึงและแสดงผลข้อมูลสุขภาพ MOPH Open Data</h1>
+                    <p class="text-xs text-teal-200/90 font-light">ศูนย์บริการเชื่อมโยงข้อมูล RESTful Web Service กระทรวงสาธารณสุข</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 text-xs bg-black/20 px-3.5 py-1.5 rounded-full border border-white/10">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-200">สถานะ API:</span>
+                <code class="text-teal-300 font-mono text-[11px]">https://opendata.moph.go.th/api/report_data</code>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Section 1: Filter Controls -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 transition-all">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center pb-4 mb-4 border-b border-slate-100 gap-2">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-filter text-moph-700 text-lg"></i>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800">เงื่อนไขการดึงข้อมูล (API Parameters)</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 transition-all flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>รีเซ็ตค่า</span>
+                    </button>
+                    <span class="text-xs text-moph-700 font-semibold bg-moph-50 border border-moph-100 px-2.5 py-1 rounded-md">POST Method</span>
+                </div>
+            </div>
+
+            <form id="apiFilterForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Table Name -->
+                    <div>
+                        <label for="tableName" class="block text-xs font-semibold text-slate-700 mb-1">
+                            ตารางข้อมูล (tableName) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-table absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="tableName" value="s_ttm4" required list="tablePresets"
+                                placeholder="เช่น s_ttm4"
+                                class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-moph-500 focus:border-moph-500 focus:bg-white transition-all font-mono">
+                            <datalist id="tablePresets">
+                                <option value="s_ttm4">s_ttm4 (รายงานบริการแพทย์แผนไทย)</option>
+                                <option value="s_ttm1">s_ttm1</option>
+                                <option value="s_ttm2">s_ttm2</option>
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <!-- Year -->
+                    <div>
+                        <label for="year" class="block text-xs font-semibold text-slate-700 mb-1">
+                            ปี พ.ศ. (year) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <select id="year" required class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-moph-500 focus:border-moph-500 focus:bg-white transition-all">
+                                <option value="2569">2569</option>
+                                <option value="2568" selected>2568</option>
+                                <option value="2567">2567</option>
+                                <option value="2566">2566</option>
+                                <option value="2565">2565</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Province -->
+                    <div>
+                        <label for="province" class="block text-xs font-semibold text-slate-700 mb-1">
+                            จังหวัด (province) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <select id="province" required class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-moph-500 focus:border-moph-500 focus:bg-white transition-all">
+                                <option value="36" selected>36 - ชัยภูมิ</option>
+                                <option value="10">10 - กรุงเทพมหานคร</option>
+                                <option value="30">30 - นครราชสีมา</option>
+                                <option value="40">40 - ขอนแก่น</option>
+                                <option value="50">50 - เชียงใหม่</option>
+                                <option value="80">80 - นครศรีธรรมราช</option>
+                                <option value="90">90 - สงขลา</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Format Type -->
+                    <div>
+                        <label for="type" class="block text-xs font-semibold text-slate-700 mb-1">
+                            รูปแบบข้อมูล (type)
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-file-code absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <select id="type" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-moph-500 focus:border-moph-500 focus:bg-white transition-all">
+                                <option value="json" selected>JSON</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Pagination Controls -->
+                <div class="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-100 items-center">
+                    <div>
+                        <label for="limit" class="block text-xs font-medium text-slate-600 mb-1">จำนวนรายการต่อรอบ (limit)</label>
+                        <input type="number" id="limit" value="1000" min="1" max="2000"
+                            class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md font-mono focus:ring-2 focus:ring-moph-500">
+                    </div>
+                    <div>
+                        <label for="offset" class="block text-xs font-medium text-slate-600 mb-1">ตำแหน่งเริ่มต้น (offset)</label>
+                        <input type="number" id="offset" value="0" min="0"
+                            class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md font-mono focus:ring-2 focus:ring-moph-500">
+                    </div>
+
+                    <!-- Auto Fetch All Toggle -->
+                    <div class="flex items-center pt-2 sm:pt-4">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoFetchAll" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-moph-700"></div>
+                            <span class="ml-2.5 text-xs font-semibold text-slate-700 select-none">
+                                ดึงข้อมูลทั้งหมดอัตโนมัติ (Pagination Loop)
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Form Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-3 gap-3">
+                    <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                        <span>แนะนำ: สำหรับจังหวัดชัยภูมิ เลือกตาราง <code>s_ttm4</code> ปี พ.ศ. <code>2568</code></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button type="submit" id="btnFetch"
+                            class="w-full sm:w-auto px-6 py-2.5 bg-moph-700 hover:bg-moph-800 text-white font-medium text-sm rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2 disabled:opacity-50">
+                            <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
+                            <span>ดึงข้อมูล (Fetch Data)</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Section 2: Summary Stat Cards -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
+                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    <i class="fa-solid fa-server text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">จำนวนทั้งหมดในระบบ</p>
+                    <h3 id="statTotal" class="text-lg font-bold text-slate-800 font-mono">-</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
+                <div class="p-3 bg-teal-50 text-moph-600 rounded-xl">
+                    <i class="fa-solid fa-circle-check text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">โหลดมาแล้ว (Fetched)</p>
+                    <h3 id="statFetched" class="text-lg font-bold text-slate-800 font-mono">-</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                    <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">ความเร็วการตอบกลับ</p>
+                    <h3 id="statLatency" class="text-lg font-bold text-slate-800 font-mono">- ms</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <i class="fa-solid fa-code-pull-request text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">HTTP Status</p>
+                    <h3 id="statStatus" class="text-lg font-bold text-slate-800 font-mono">-</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Status & Error Alert Notification Bar -->
+        <div id="statusContainer" class="hidden">
+            <div id="statusBox" class="p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between border gap-3">
+                <div class="flex items-center space-x-3">
+                    <div id="statusSpinner" class="animate-spin text-moph-700">
+                        <i class="fa-solid fa-circle-notch text-xl"></i>
+                    </div>
+                    <div>
+                        <p id="statusTitle" class="text-sm font-semibold">กำลังเชื่อมต่อ API...</p>
+                        <p id="statusDetail" class="text-xs opacity-80">โปรดรอสักครู่</p>
+                    </div>
+                </div>
+                <button id="btnDemoMode" onclick="loadDemoData()" class="hidden px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>โหลดข้อมูลทดสอบ (Demo Mode)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Section 3: Interactive Tabs (Data Table, Charts, Code Snippets) -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+            <!-- Tabs Bar -->
+            <div class="border-b border-slate-200 bg-slate-50/50 px-4 pt-3 flex flex-wrap gap-2">
+                <button onclick="switchTab('table')" id="tabBtnTable"
+                    class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl bg-white text-moph-800 border-t-2 border-moph-700 shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-table-cells"></i>
+                    <span>ตารางข้อมูล (Data Table)</span>
+                </button>
+                <button onclick="switchTab('chart')" id="tabBtnChart"
+                    class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium rounded-t-xl text-slate-600 hover:text-slate-900 flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-column"></i>
+                    <span>แผนภูมิวิเคราะห์ (Charts)</span>
+                </button>
+                <button onclick="switchTab('code')" id="tabBtnCode"
+                    class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium rounded-t-xl text-slate-600 hover:text-slate-900 flex items-center space-x-2">
+                    <i class="fa-solid fa-code"></i>
+                    <span>ตัวอย่างโค้ดเรียกใช้ (Code Snippets)</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: DATA TABLE VIEW -->
+            <div id="tabContentTable" class="p-4 sm:p-6 space-y-4">
+                <!-- Search & Export Toolbar -->
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+                    <div class="relative flex-grow max-w-md">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="พิมพ์เพื่อค้นหาข้อมูลในตาราง..."
+                            class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-moph-500">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportData('json')" class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-all flex items-center space-x-1.5">
+                            <i class="fa-solid fa-file-code text-amber-600"></i>
+                            <span>ส่งออก JSON</span>
+                        </button>
+                        <button onclick="exportData('csv')" class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-all flex items-center space-x-1.5">
+                            <i class="fa-solid fa-file-csv text-emerald-600"></i>
+                            <span>ส่งออก CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-[500px]">
+                    <table id="dataTable" class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-100 text-slate-700 font-semibold sticky top-0 z-10 border-b border-slate-200">
+                            <tr id="tableHeader">
+                                <th class="p-3 text-center text-slate-400">ยังไม่มีข้อมูล</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-100 font-mono text-slate-600">
+                            <tr>
+                                <td class="p-10 text-center text-slate-400" colspan="100">
+                                    <i class="fa-solid fa-cloud-arrow-down text-4xl mb-3 text-slate-300 block"></i>
+                                    กดปุ่ม "ดึงข้อมูล" ด้านบนเพื่อเริ่มเรียกใช้งาน API
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Local Pagination Footer -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2 text-xs text-slate-600">
+                    <div id="tableInfo">แสดง 0 จาก 0 รายการ</div>
+                    <div class="flex items-center space-x-1.5">
+                        <button id="btnPrevPage" onclick="changeLocalPage(-1)" disabled class="px-3 py-1.5 border border-slate-300 rounded-md bg-white hover:bg-slate-50 disabled:opacity-40 font-medium">
+                            <i class="fa-solid fa-chevron-left mr-1"></i> ก่อนหน้า
+                        </button>
+                        <span class="px-3 font-semibold text-slate-700" id="currentPageText">หน้า 1 / 1</span>
+                        <button id="btnNextPage" onclick="changeLocalPage(1)" disabled class="px-3 py-1.5 border border-slate-300 rounded-md bg-white hover:bg-slate-50 disabled:opacity-40 font-medium">
+                            ถัดไป <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: CHARTS ANALYTICS VIEW -->
+            <div id="tabContentChart" class="p-4 sm:p-6 hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">แผนภูมิสรุปสถิติข้อมูล</h3>
+                        <p class="text-xs text-slate-500">สรุปความถี่ของข้อมูลในคอลัมน์ที่เลือกอัตโนมัติ</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-slate-600">เลือกคอลัมน์วิเคราะห์:</label>
+                        <select id="chartFieldSelect" onchange="renderChart()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-moph-500">
+                            <!-- Options dynamically created -->
+                        </select>
+                    </div>
+                </div>
+                <div class="relative h-80 w-full flex items-center justify-center">
+                    <canvas id="summaryChart"></canvas>
+                    <div id="chartPlaceholder" class="text-center text-slate-400">
+                        <i class="fa-solid fa-chart-pie text-4xl mb-2 text-slate-300 block"></i>
+                        โปรดดึงข้อมูลเพื่อสร้างแผนภูมิอัตโนมัติ
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CODE SNIPPET GENERATOR VIEW -->
+            <div id="tabContentCode" class="p-4 sm:p-6 hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">ตัวอย่างโค้ดพร้อมใช้งาน (Code Snippets)</h3>
+                        <p class="text-xs text-slate-500">โค้ดปรับเปลี่ยนตามตัวแปรที่คุณกรอกในแบบฟอร์มด้านบนโดยอัตโนมัติ</p>
+                    </div>
+                </div>
+
+                <!-- Code Subtabs -->
+                <div class="flex space-x-2 border-b border-slate-200 overflow-x-auto">
+                    <button onclick="switchCodeTab('js')" id="codeBtnJs" class="code-subtab px-3.5 py-2 text-xs font-semibold text-moph-700 border-b-2 border-moph-700 whitespace-nowrap">JavaScript (Fetch)</button>
+                    <button onclick="switchCodeTab('node')" id="codeBtnNode" class="code-subtab px-3.5 py-2 text-xs font-medium text-slate-500 whitespace-nowrap">Node.js</button>
+                    <button onclick="switchCodeTab('php')" id="codeBtnPhp" class="code-subtab px-3.5 py-2 text-xs font-medium text-slate-500 whitespace-nowrap">PHP (cURL)</button>
+                    <button onclick="switchCodeTab('python')" id="codeBtnPython" class="code-subtab px-3.5 py-2 text-xs font-medium text-slate-500 whitespace-nowrap">Python</button>
+                    <button onclick="switchCodeTab('curl')" id="codeBtnCurl" class="code-subtab px-3.5 py-2 text-xs font-medium text-slate-500 whitespace-nowrap">cURL Command</button>
+                </div>
+
+                <!-- Code Viewer -->
+                <div class="relative bg-slate-900 rounded-xl p-4 text-slate-100 font-mono text-xs overflow-x-auto shadow-inner">
+                    <button onclick="copyCode()" class="absolute top-3 right-3 bg-white/10 hover:bg-white/20 text-slate-200 px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1.5 border border-white/10 transition-all">
+                        <i class="fa-regular fa-copy"></i>
+                        <span id="copyBtnText">คัดลอกโค้ด</span>
+                    </button>
+                    <pre><code id="codeViewer" class="language-js">// โค้ดจะแสดงที่นี่</code></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Global State Management
+        let rawDataStore = [];
+        let filteredDataStore = [];
+        let totalApiCount = 0;
+        let currentLocalPage = 1;
+        const pageSize = 3500;
+        let chartInstance = null;
+        let currentCodeTab = 'js';
+
+        // DOM Ready Initializer
+        document.addEventListener("DOMContentLoaded", () => {
+            updateCodeSnippets();
+            
+            // Listen to form input changes to update snippets in real time
+            ['tableName', 'year', 'province', 'type', 'limit', 'offset'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', updateCodeSnippets);
+                if (el) el.addEventListener('input', updateCodeSnippets);
+            });
+        });
+
+        // Tab Navigation
+        function switchTab(tabName) {
+            const tabs = ['table', 'chart', 'code'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (t === tabName) {
+                    btn.className = "tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl bg-white text-moph-800 border-t-2 border-moph-700 shadow-sm flex items-center space-x-2";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium rounded-t-xl text-slate-600 hover:text-slate-900 flex items-center space-x-2";
+                    content.classList.add('hidden');
+                }
+            });
+
+            if (tabName === 'chart' && rawDataStore.length > 0) {
+                renderChart();
+            }
+        }
+
+        // Code Sub-tab Switcher
+        function switchCodeTab(lang) {
+            currentCodeTab = lang;
+            const langs = ['js', 'node', 'php', 'python', 'curl'];
+            langs.forEach(l => {
+                const btn = document.getElementById(`codeBtn${l.charAt(0).toUpperCase() + l.slice(1)}`);
+                if (l === lang) {
+                    btn.className = "code-subtab px-3.5 py-2 text-xs font-semibold text-moph-700 border-b-2 border-moph-700 whitespace-nowrap";
+                } else {
+                    btn.className = "code-subtab px-3.5 py-2 text-xs font-medium text-slate-500 whitespace-nowrap";
+                }
+            });
+            updateCodeSnippets();
+        }
+
+        // Form Submission & API Fetching
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const autoFetch = document.getElementById('autoFetchAll').checked;
+            
+            const payload = {
+                tableName: document.getElementById('tableName').value.trim(),
+                year: document.getElementById('year').value.trim(),
+                province: document.getElementById('province').value.trim(),
+                type: document.getElementById('type').value,
+                limit: parseInt(document.getElementById('limit').value) || 1000,
+                offset: parseInt(document.getElementById('offset').value) || 0
+            };
+
+            showStatus("กำลังดึงข้อมูลจาก API...", "กำลังส่งคำขอไปยัง https://opendata.moph.go.th/api/report_data", true);
+            document.getElementById('btnDemoMode').classList.add('hidden');
+            disableForm(true);
+
+            rawDataStore = [];
+            const startTime = performance.now();
+
+            try {
+                if (autoFetch) {
+                    await fetchAllPagesLoop(payload);
+                } else {
+                    await fetchSinglePage(payload);
+                }
+                
+                const endTime = performance.now();
+                const latency = Math.round(endTime - startTime);
+                document.getElementById('statLatency').innerText = `${latency} ms`;
+                document.getElementById('statStatus').innerText = "200 OK";
+
+                filteredDataStore = [...rawDataStore];
+                currentLocalPage = 1;
+                renderTable();
+                populateChartFieldSelect();
+                
+                showStatusSuccess(`ดึงข้อมูลสำเร็จเรียบร้อย! ได้รับข้อมูลจำนวน ${rawDataStore.length.toLocaleString()} รายการ`);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('statStatus').innerText = "Error";
+                document.getElementById('statLatency').innerText = "-";
+                showStatusError(`เกิดข้อผิดพลาดในการดึงข้อมูล: ${err.message || "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"}`);
+                document.getElementById('btnDemoMode').classList.remove('hidden');
+            } finally {
+                disableForm(false);
+            }
+        }
+
+        // Fetch Single Page
+        async function fetchSinglePage(payload) {
+            const res = await fetch("https://opendata.moph.go.th/api/report_data", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
+
+            const json = await res.json();
+            const records = json.data || [];
+            totalApiCount = parseInt(json.total) || records.length;
+            
+            rawDataStore = records;
+            
+            document.getElementById('statTotal').innerText = totalApiCount.toLocaleString();
+            document.getElementById('statFetched').innerText = records.length.toLocaleString();
+        }
+
+        // Fetch All Pages (Loop)
+        async function fetchAllPagesLoop(initialPayload) {
+            let offset = initialPayload.offset || 0;
+            const limit = initialPayload.limit || 1000;
+            let hasMore = true;
+            let total = 0;
+
+            while (hasMore) {
+                const currentPayload = { ...initialPayload, offset, limit };
+                updateStatusDetail(`กำลังดึงข้อมูลตำแหน่งที่ ${offset.toLocaleString()}... (ได้แล้ว ${rawDataStore.length.toLocaleString()} รายการ)`);
+                
+                const res = await fetch("https://opendata.moph.go.th/api/report_data", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(currentPayload)
+                });
+
+                if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
+
+                const json = await res.json();
+                const records = json.data || [];
+                total = parseInt(json.total) || records.length;
+
+                rawDataStore = rawDataStore.concat(records);
+                totalApiCount = total;
+
+                document.getElementById('statTotal').innerText = total.toLocaleString();
+                document.getElementById('statFetched').innerText = rawDataStore.length.toLocaleString();
+
+                if (records.length < limit || rawDataStore.length >= total) {
+                    hasMore = false;
+                } else {
+                    offset += limit;
+                }
+            }
+        }
+
+        // Fallback Demo Data Generator for Testing when CORS blocks browser requests
+        function loadDemoData() {
+            const prov = document.getElementById('province').value;
+            const provName = document.querySelector(`#province option[value="${prov}"]`)?.textContent || prov;
+            
+            rawDataStore = [];
+            for (let i = 1; i <= 150; i++) {
+                rawDataStore.push({
+                    "id": i,
+                    "hcode": `106${10 + (i % 5)}`,
+                    "hname": `โรงพยาบาลส่งเสริมสุขภาพตำบลบ้าน${i}`,
+                    "province": provName,
+                    "year": document.getElementById('year').value,
+                    "service_type": i % 2 === 0 ? "นวดแผนไทย" : "ประคบสมุนไพร",
+                    "patient_count": Math.floor(Math.random() * 200) + 10
+                });
+            }
+
+            totalApiCount = 150;
+            document.getElementById('statTotal').innerText = "150";
+            document.getElementById('statFetched').innerText = "150";
+            document.getElementById('statLatency').innerText = "12 ms";
+            document.getElementById('statStatus').innerText = "200 (Demo)";
+
+            filteredDataStore = [...rawDataStore];
+            currentLocalPage = 1;
+            renderTable();
+            populateChartFieldSelect();
+            showStatusSuccess("โหลดข้อมูลทดสอบ (Demo Data) เรียบร้อยแล้ว!");
+        }
+
+        // Render Interactive Data Table
+        function renderTable() {
+            const headerTr = document.getElementById('tableHeader');
+            const bodyTbody = document.getElementById('tableBody');
+
+            if (!filteredDataStore || filteredDataStore.length === 0) {
+                headerTr.innerHTML = `<th class="p-3 text-center text-slate-400">ไม่มีข้อมูลที่ตรงกับเงื่อนไข</th>`;
+                bodyTbody.innerHTML = `
+                    <tr>
+                        <td class="p-8 text-center text-slate-400" colspan="100">
+                            ไม่พบข้อมูลในระบบ
+                        </td>
+                    </tr>`;
+                document.getElementById('tableInfo').innerText = "แสดง 0 จาก 0 รายการ";
+                document.getElementById('currentPageText').innerText = "หน้า 1 / 1";
+                document.getElementById('btnPrevPage').disabled = true;
+                document.getElementById('btnNextPage').disabled = true;
+                return;
+            }
+
+            const columns = Object.keys(filteredDataStore[0]);
+            headerTr.innerHTML = columns.map(col => `
+                <th class="p-3 text-left font-bold text-slate-700 bg-slate-100 border-b whitespace-nowrap">
+                    ${col}
+                </th>
+            `).join('');
+
+            const totalPages = Math.ceil(filteredDataStore.length / pageSize) || 1;
+            if (currentLocalPage > totalPages) currentLocalPage = totalPages;
+            if (currentLocalPage < 1) currentLocalPage = 1;
+
+            const startIdx = (currentLocalPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, filteredDataStore.length);
+            const pageData = filteredDataStore.slice(startIdx, endIdx);
+
+            bodyTbody.innerHTML = pageData.map((row) => `
+                <tr class="hover:bg-teal-50/40 transition-colors">
+                    ${columns.map(col => `
+                        <td class="p-3 border-b border-slate-100 max-w-xs truncate" title="${row[col] ?? ''}">
+                            ${row[col] ?? '<span class="text-slate-300">null</span>'}
+                        </td>
+                    `).join('')}
+                </tr>
+            `).join('');
+
+            document.getElementById('tableInfo').innerText = `แสดง ${startIdx + 1} - ${endIdx} จากทั้งหมด ${filteredDataStore.length.toLocaleString()} รายการ`;
+            document.getElementById('currentPageText').innerText = `หน้า ${currentLocalPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = (currentLocalPage === 1);
+            document.getElementById('btnNextPage').disabled = (currentLocalPage === totalPages);
+        }
+
+        function changeLocalPage(delta) {
+            currentLocalPage += delta;
+            renderTable();
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) {
+                filteredDataStore = [...rawDataStore];
+            } else {
+                filteredDataStore = rawDataStore.filter(row => {
+                    return Object.values(row).some(val => 
+                        val !== null && String(val).toLowerCase().includes(query)
+                    );
+                });
+            }
+            currentLocalPage = 1;
+            renderTable();
+        }
+
+        // Dynamic Chart Generator
+        function populateChartFieldSelect() {
+            const select = document.getElementById('chartFieldSelect');
+            select.innerHTML = '';
+            if (rawDataStore.length === 0) return;
+
+            const keys = Object.keys(rawDataStore[0]);
+            keys.forEach(k => {
+                const option = document.createElement('option');
+                option.value = k;
+                option.textContent = k;
+                select.appendChild(option);
+            });
+        }
+
+        function renderChart() {
+            if (rawDataStore.length === 0) return;
+
+            const selectedField = document.getElementById('chartFieldSelect').value || Object.keys(rawDataStore[0])[0];
+            const placeholder = document.getElementById('chartPlaceholder');
+            const canvas = document.getElementById('summaryChart');
+
+            placeholder.classList.add('hidden');
+
+            const counts = {};
+            rawDataStore.forEach(item => {
+                const val = item[selectedField] ?? 'ไม่ระบุ';
+                counts[val] = (counts[val] || 0) + 1;
+            });
+
+            const sorted = Object.entries(counts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const labels = sorted.map(i => i[0]);
+            const dataValues = sorted.map(i => i[1]);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `การแจกแจงความถี่ตาม (${selectedField})`,
+                        data: dataValues,
+                        backgroundColor: '#14b8a6',
+                        borderColor: '#0f766e',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Export Data (JSON & CSV)
+        function exportData(type) {
+            if (!filteredDataStore || filteredDataStore.length === 0) {
+                alert("ไม่มีข้อมูลสำหรับส่งออก");
+                return;
+            }
+
+            const tableName = document.getElementById('tableName').value || 'moph_data';
+            
+            if (type === 'json') {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredDataStore, null, 2));
+                downloadFile(dataStr, `${tableName}_export.json`);
+            } else if (type === 'csv') {
+                const headers = Object.keys(filteredDataStore[0]);
+                const csvRows = [];
+                csvRows.push(headers.join(','));
+
+                filteredDataStore.forEach(row => {
+                    const values = headers.map(h => {
+                        const val = row[h] ?? '';
+                        const escaped = ('' + val).replace(/"/g, '""');
+                        return `"${escaped}"`;
+                    });
+                    csvRows.push(values.join(','));
+                });
+
+                const csvStr = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(csvRows.join('\n'));
+                downloadFile(csvStr, `${tableName}_export.csv`);
+            }
+        }
+
+        function downloadFile(content, fileName) {
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", content);
+            dlAnchorElem.setAttribute("download", fileName);
+            document.body.appendChild(dlAnchorElem);
+            dlAnchorElem.click();
+            dlAnchorElem.remove();
+        }
+
+        // Dynamic Code Snippet Generator
+        function updateCodeSnippets() {
+            const tableName = document.getElementById('tableName').value.trim() || 's_ttm4';
+            const year = document.getElementById('year').value.trim() || '2568';
+            const province = document.getElementById('province').value.trim() || '36';
+            const type = document.getElementById('type').value;
+
+            const payloadObj = { tableName, year, province, type };
+            const payloadJsonStr = JSON.stringify(payloadObj, null, 2);
+            const payloadSingleLine = JSON.stringify(payloadObj);
+
+            let code = '';
+
+            if (currentCodeTab === 'js') {
+                code = `// JavaScript (Browser Fetch API)
+const payload = ${payloadJsonStr};
+
+fetch("https://opendata.moph.go.th/api/report_data", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(payload)
+})
+  .then(response => response.json())
+  .then(data => console.log("ผลลัพธ์:", data))
+  .catch(error => console.error("เกิดข้อผิดพลาด:", error));`;
+            } else if (currentCodeTab === 'node') {
+                code = `// Node.js (v18+ Native Fetch)
+const payload = ${payloadJsonStr};
+
+async function fetchData() {
+  try {
+    const response = await fetch("https://opendata.moph.go.th/api/report_data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    
+    const result = await response.json();
+    console.log("จำนวนรายการทั้งหมด:", result.total);
+    console.log("รายการข้อมูล:", result.data);
+  } catch (err) {
+    console.error("เกิดข้อผิดพลาด:", err);
+  }
+}
+
+fetchData();`;
+            } else if (currentCodeTab === 'php') {
+                code = `<?php
+// PHP cURL Example
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => 'https://opendata.moph.go.th/api/report_data',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_CUSTOMREQUEST => 'POST',
+  CURLOPT_POSTFIELDS => '${payloadSingleLine}',
+  CURLOPT_HTTPHEADER => array(
+    'Content-Type: application/json'
+  ),
+));
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+$data = json_decode($response, true);
+print_r($data);
+?>`;
+            } else if (currentCodeTab === 'python') {
+                code = `# Python (Requests Library)
+import requests
+
+url = "https://opendata.moph.go.th/api/report_data"
+payload = ${JSON.stringify(payloadObj, null, 4)}
+headers = {
+    "Content-Type": "application/json"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+data = response.json()
+
+print(f"จำนวนทั้งหมด: {data.get('total')}")
+print(data.get('data')[:5]) # แสดง 5 รายการแรก`;
+            } else if (currentCodeTab === 'curl') {
+                code = `curl -X POST "https://opendata.moph.go.th/api/report_data" \\
+  -H "Content-Type: application/json" \\
+  -d '${payloadSingleLine}'`;
+            }
+
+            document.getElementById('codeViewer').textContent = code;
+        }
+
+        function copyCode() {
+            const codeText = document.getElementById('codeViewer').textContent;
+            const textarea = document.createElement('textarea');
+            textarea.value = codeText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            const btnText = document.getElementById('copyBtnText');
+            btnText.innerText = "คัดลอกเรียบร้อย!";
+            setTimeout(() => {
+                btnText.innerText = "คัดลอกโค้ด";
+            }, 2000);
+        }
+
+        function resetForm() {
+            document.getElementById('tableName').value = 's_ttm4';
+            document.getElementById('year').value = '2568';
+            document.getElementById('province').value = '36';
+            document.getElementById('limit').value = '1000';
+            document.getElementById('offset').value = '0';
+            document.getElementById('autoFetchAll').checked = false;
+            updateCodeSnippets();
+        }
+
+        // Helper Status UI Functions
+        function showStatus(title, detail, isLoading = true) {
+            const box = document.getElementById('statusContainer');
+            const statusBox = document.getElementById('statusBox');
+            box.classList.remove('hidden');
+            statusBox.className = "p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between border bg-teal-50 border-teal-200 text-teal-800 gap-3";
+            
+            document.getElementById('statusTitle').innerText = title;
+            document.getElementById('statusDetail').innerText = detail;
+            document.getElementById('statusSpinner').style.display = isLoading ? 'block' : 'none';
+        }
+
+        function showStatusSuccess(msg) {
+            showStatus(msg, "ประมวลผลข้อมูลสำเร็จแล้ว", false);
+            document.getElementById('statusBox').className = "p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between border bg-emerald-50 border-emerald-200 text-emerald-800 gap-3";
+        }
+
+        function showStatusError(msg) {
+            showStatus(msg, "หากทดสอบบนเบราว์เซอร์แล้วติด CORS สามารถคลิกปุ่ม 'โหลดข้อมูลทดสอบ (Demo Mode)' เพื่อดูการทำงานได้ครับ", false);
+            document.getElementById('statusBox').className = "p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between border bg-rose-50 border-rose-200 text-rose-800 gap-3";
+        }
+
+        function updateStatusDetail(detail) {
+            document.getElementById('statusDetail').innerText = detail;
+        }
+
+        function disableForm(disabled) {
+            document.getElementById('btnFetch').disabled = disabled;
+        }
+    </script>
+</body>
+</html>
