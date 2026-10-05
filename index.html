@@ -255,6 +255,7 @@ td.num{text-align:right;font-family:'JetBrains Mono',monospace}
     <div class="card-h" style="padding-bottom:12px"><h2><span class="step">2</span> ผลลัพธ์ <span class="chip" id="resultLabel">ยังไม่ได้ดึงข้อมูล</span></h2></div>
     <div class="tabs">
       <button class="tab on" id="tabBtnTable" onclick="switchTab('table')"><i class="fa-solid fa-table-cells"></i> ตารางข้อมูล</button>
+      <button class="tab" id="tabBtnSchema" onclick="switchTab('schema')"><i class="fa-solid fa-sitemap"></i> โครงสร้างตาราง</button>
       <button class="tab" id="tabBtnChart" onclick="switchTab('chart')"><i class="fa-solid fa-chart-column"></i> แผนภูมิ</button>
       <button class="tab" id="tabBtnCode" onclick="switchTab('code')"><i class="fa-solid fa-code"></i> โค้ดตัวอย่าง</button>
     </div>
@@ -283,6 +284,25 @@ td.num{text-align:right;font-family:'JetBrains Mono',monospace}
           <span id="currentPageText">1 / 1</span>
           <button class="btn sm" id="btnNextPage" onclick="changeLocalPage(1)" disabled><i class="fa-solid fa-chevron-right"></i></button>
         </div>
+      </div>
+    </div>
+
+    <div id="tabContentSchema" class="card-b hidden">
+      <div class="tbar">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <b class="mono" id="schemaTitle">-</b><span class="muted" id="schemaInfo"></span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input class="inp" id="schemaSearch" oninput="renderSchema()" placeholder="ค้นหาคอลัมน์..." style="height:30px">
+          <button class="btn sm" onclick="copySchemaSQL()"><i class="fa-regular fa-copy"></i> คัดลอก SQL</button>
+          <button class="btn sm" onclick="exportSchemaCSV()"><i class="fa-solid fa-file-csv" style="color:var(--ok)"></i> CSV</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th style="cursor:default">#</th><th style="cursor:default">COLUMN NAME</th><th style="cursor:default">COLUMN TYPE</th><th style="cursor:default">NULLABLE</th><th style="cursor:default">COMMENT (คำอธิบาย)</th></tr></thead>
+          <tbody id="schemaBody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -419,7 +439,7 @@ function renderCatalog(reset, keep) {
 }
 function pickReport(t) {
   $('tableName').value = t;
-  addRecent(t); updateCodeSnippets(); highlightSelected();
+  addRecent(t); updateCodeSnippets(); highlightSelected(); onTableChanged();
   toast('เลือกตาราง ' + t + ' แล้ว — กด "ดึงข้อมูล"');
 }
 function highlightSelected() {
@@ -449,6 +469,8 @@ document.addEventListener("DOMContentLoaded", () => {
     $(id).addEventListener('input', updateCodeSnippets); $(id).addEventListener('change', updateCodeSnippets);
   });
   $('tableName').addEventListener('change', highlightSelected);
+  $('tableName').addEventListener('input', onTableChanged);
+  onTableChanged();
   document.addEventListener('keydown', e => {
     if (e.key === '/' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); $('catSearch').focus(); }
   });
@@ -457,12 +479,93 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ================= Tabs =================
 function switchTab(name) {
-  ['table', 'chart', 'code'].forEach(t => {
+  ['table', 'schema', 'chart', 'code'].forEach(t => {
     const T = t[0].toUpperCase() + t.slice(1);
     $('tabBtn' + T).classList.toggle('on', t === name);
     $('tabContent' + T).classList.toggle('hidden', t !== name);
   });
+  if (name === 'schema') loadSchema();
   if (name === 'chart' && rawDataStore.length) renderChart();
+}
+
+// ================= Table schema (/api/report_schema, /api/report_year) =================
+const SITE_API = "https://opendata.moph.go.th/api/";
+let schemaCache = {}, yearCache = {}, schemaTable = '', schemaCols = [];
+async function siteGet(path) {
+  for (let t = 0; t < 4; t++) {
+    const res = await fetch(SITE_API + path);
+    if (res.status === 429) { await sleep(1500 * (t + 1)); continue; }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+  throw new Error('เรียกถี่เกินไป ลองใหม่อีกครั้ง');
+}
+async function loadSchema() {
+  const table = $('tableName').value.trim();
+  if (!table) return;
+  schemaTable = table; $('schemaTitle').textContent = table;
+  if (!schemaCache[table]) {
+    $('schemaBody').innerHTML = '<tr><td colspan="5"><div class="empty"><i class="fa-solid fa-circle-notch spin"></i>กำลังโหลดโครงสร้าง...</div></td></tr>';
+    try { schemaCache[table] = await siteGet('report_schema/' + encodeURIComponent(table)); }
+    catch (e) { if (schemaTable === table) { schemaCols = []; $('schemaInfo').textContent = ''; $('schemaBody').innerHTML = `<tr><td colspan="5"><div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>โหลดโครงสร้างไม่สำเร็จ: ${esc(e.message)}</div></td></tr>`; } return; }
+  }
+  if (schemaTable !== table) return;   // ผู้ใช้เปลี่ยนตารางระหว่างโหลด
+  schemaCols = Array.isArray(schemaCache[table]) ? schemaCache[table] : [];
+  renderSchema();
+  if (rawDataStore.length) renderTable();   // อัปเดต tooltip ของหัวคอลัมน์
+}
+function renderSchema() {
+  const q = $('schemaSearch').value.trim().toLowerCase();
+  const rows = schemaCols.map((c, i) => ({ ...c, i: i + 1 }))
+    .filter(c => !q || (c.COLUMN_NAME + ' ' + (c.COLUMN_COMMENT || '') + ' ' + c.COLUMN_TYPE).toLowerCase().includes(q));
+  $('schemaInfo').textContent = schemaCols.length ? `${schemaCols.length} คอลัมน์` : '';
+  $('schemaBody').innerHTML = rows.length ? rows.map(c => `<tr>
+    <td class="num">${c.i}</td><td class="mono" style="color:var(--brand-d);font-weight:500">${esc(c.COLUMN_NAME)}</td>
+    <td class="mono">${esc(c.COLUMN_TYPE)}</td><td>${c.IS_NULLABLE === 'YES' ? '<span class="chip">NULL ได้</span>' : '<span class="closed">NOT NULL</span>'}</td>
+    <td style="white-space:normal;max-width:none">${esc(c.COLUMN_COMMENT) || '<span class="muted">–</span>'}</td></tr>`).join('')
+    : '<tr><td colspan="5"><div class="empty"><i class="fa-solid fa-sitemap"></i>ไม่พบโครงสร้างตาราง</div></td></tr>';
+}
+function schemaSQL() {
+  const lines = schemaCols.map(c => `  \`${c.COLUMN_NAME}\` ${c.COLUMN_TYPE}${c.IS_NULLABLE === 'YES' ? ' NULL' : ' NOT NULL'}${c.COLUMN_COMMENT ? ` COMMENT '${c.COLUMN_COMMENT.replace(/'/g, "''")}'` : ''}`);
+  return `CREATE TABLE \`${schemaTable}\` (\n${lines.join(',\n')}\n);`;
+}
+async function copySchemaSQL() {
+  if (!schemaCols.length) { toast('ยังไม่มีโครงสร้างให้คัดลอก'); return; }
+  try { await navigator.clipboard.writeText(schemaSQL()); } catch (e) {
+    const t = document.createElement('textarea'); t.value = schemaSQL(); document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+  }
+  toast('คัดลอก CREATE TABLE แล้ว');
+}
+function exportSchemaCSV() {
+  if (!schemaCols.length) { toast('ยังไม่มีโครงสร้างให้ส่งออก'); return; }
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = "﻿" + ['COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE,COLUMN_COMMENT', ...schemaCols.map(c => [c.COLUMN_NAME, c.COLUMN_TYPE, c.IS_NULLABLE, c.COLUMN_COMMENT].map(q).join(','))].join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = `${schemaTable}_schema.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+// ปีที่มีข้อมูลจริงของตารางที่เลือก
+async function loadYears() {
+  const table = $('tableName').value.trim();
+  if (!table) return;
+  try {
+    if (!yearCache[table]) yearCache[table] = await siteGet('report_year/' + encodeURIComponent(table));
+    if ($('tableName').value.trim() !== table) return;
+    const ys = (yearCache[table] || []).map(y => String(y.b_year)).filter(Boolean);
+    if (!ys.length) return;
+    const cur = $('year').value;
+    $('year').innerHTML = ys.map(y => `<option>${y}</option>`).join('');
+    $('year').value = ys.includes(cur) ? cur : ys[0];
+    updateCodeSnippets();
+  } catch (e) { /* ใช้รายการปีเดิม */ }
+}
+let tableChangeTimer;
+function onTableChanged() {
+  clearTimeout(tableChangeTimer);
+  tableChangeTimer = setTimeout(() => {
+    loadYears();
+    schemaCols = []; schemaTable = '';
+    if (!$('tabContentSchema').classList.contains('hidden')) loadSchema(); else loadSchema().catch(() => {});
+  }, 500);
 }
 
 // ================= Fetching =================
@@ -544,7 +647,8 @@ function renderTable() {
     $('btnPrevPage').disabled = $('btnNextPage').disabled = true; return;
   }
   const cols = Object.keys(filteredDataStore[0]);
-  head.innerHTML = cols.map(c => `<th data-c="${esc(c)}" onclick="sortBy(this.dataset.c)">${esc(c)} ${sortCol === c ? (sortDir > 0 ? '▲' : '▼') : ''}</th>`).join('');
+  const comment = c => (schemaCols.find(s => s.COLUMN_NAME === c) || {}).COLUMN_COMMENT || '';
+  head.innerHTML = cols.map(c => `<th data-c="${esc(c)}" title="${esc(comment(c))}" onclick="sortBy(this.dataset.c)">${esc(c)} ${sortCol === c ? (sortDir > 0 ? '▲' : '▼') : ''}</th>`).join('');
   const pages = Math.ceil(filteredDataStore.length / pageSize) || 1;
   currentLocalPage = Math.min(Math.max(1, currentLocalPage), pages);
   const s = (currentLocalPage - 1) * pageSize, e = Math.min(s + pageSize, filteredDataStore.length);
