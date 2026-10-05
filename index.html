@@ -147,6 +147,68 @@ td.num{text-align:right;font-family:'JetBrains Mono',monospace}
 .code{background:#0d1b1e;color:#d7ecee;border-radius:12px;padding:16px;font-size:12px;overflow:auto;position:relative;margin:0;max-height:420px}
 .code .copy{position:sticky;float:right;top:0}
 
+/* view switch + NCD Clinic Plus */
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;gap:4px;box-shadow:var(--shadow);align-self:flex-start;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:8px 18px;border-radius:9px;cursor:pointer;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:8px}
+.seg button.on{background:var(--brand-d);color:#fff}
+.view{display:flex;flex-direction:column;gap:22px}
+body:not([data-view="ncd"]) #btnNcd{display:none}
+body[data-view="ncd"] .f-year,body[data-view="ncd"] .f-table,body[data-view="ncd"] #btnFetch,body[data-view="ncd"] #btnOpt,body[data-view="ncd"] #adv{display:none!important}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.kpi{border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.kpi-h{display:flex;gap:10px;align-items:flex-start}
+.kpi-h .num{flex:none;width:26px;height:26px;border-radius:8px;background:var(--brand-soft);color:var(--brand-d);display:grid;place-items:center;font-weight:600;font-size:12px}
+:root[data-theme="dark"] .kpi-h .num{color:var(--brand)}
+.kpi-h .name{font-size:13.5px;line-height:1.45}
+.kpi-v{display:flex;align-items:baseline;gap:10px}
+.kpi-v b{font-size:30px;font-weight:600;line-height:1}
+.kpi-v small{color:var(--muted)}
+.bar{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.bar>div{height:100%;background:linear-gradient(90deg,var(--brand-d),var(--brand));border-radius:99px;transition:width .5s}
+.kpi-f{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:auto}
+.kpi-d{border-top:1px dashed var(--border);padding-top:10px;max-height:280px;overflow:auto;font-size:12px}
+.kpi-d table td,.kpi-d table th{padding:5px 8px}
+.skel{opacity:.5;animation:pulse2 1.2s infinite}@keyframes pulse2{50%{opacity:.2}}
+
+/* target status */
+.st-ok{color:var(--ok)!important;font-weight:600}.st-warn{color:var(--warn)!important;font-weight:600}.st-bad{color:var(--err)!important;font-weight:600}
+td.st-ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}td.st-warn{background:color-mix(in srgb,var(--warn) 16%,transparent)}td.st-bad{background:color-mix(in srgb,var(--err) 14%,transparent)}
+.chip.st-chip-ok{background:var(--okbg);color:var(--ok)}.chip.st-chip-warn{background:var(--warnbg);color:var(--warn)}.chip.st-chip-bad{background:var(--errbg);color:var(--err)}
+.bar{position:relative;overflow:visible}.bar>div{border-radius:99px}
+.bar-ok>div{background:var(--ok)}.bar-warn>div{background:var(--warn)}.bar-bad>div{background:var(--err)}
+.bar .tick{position:absolute;top:-4px;width:2px;height:16px;background:var(--text);opacity:.55;border-radius:2px;transform:translateX(-1px)}
+#ncdSummary{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.trend-box{position:relative;height:300px}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#taGrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+
+/* รายงานสำหรับพิมพ์ (A4 แนวตั้ง 1 หน้า) — ใช้สีตายตัวแบบโหมดสว่างเสมอ */
+#printReport{display:none}
+#printReport{font-family:'Prompt',sans-serif;color:#111;background:#fff;font-size:8.6pt;line-height:1.35}
+#printReport .pr-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #0f766e;padding-bottom:5px;margin-bottom:7px}
+#printReport h1{margin:0;font-size:15pt;color:#0f766e;font-weight:600}
+#printReport .pr-sub{font-size:9.5pt;color:#333}
+#printReport .pr-meta{text-align:right;font-size:7.8pt;color:#555}
+#printReport .pr-chips{display:flex;gap:6px;margin:0 0 6px;font-size:8.2pt}
+#printReport .pr-chips span{padding:1px 9px;border-radius:99px;font-weight:600}
+#printReport h2{font-size:9.6pt;margin:8px 0 3px;color:#0f766e;font-weight:600}
+#printReport table{width:100%;border-collapse:collapse;font-size:7.8pt}
+#printReport th,#printReport td{border:.6pt solid #b8c4c4;padding:1.6px 3px}
+#printReport th{background:#e8f1f0;font-weight:600;text-align:center}
+#printReport td.n{text-align:right;font-variant-numeric:tabular-nums}
+#printReport td.nm{white-space:nowrap}
+#printReport tr.tot td{font-weight:700;border-top:1.4pt solid #0f766e}
+#printReport .ok{background:#d1fae5;color:#065f46}#printReport .warn{background:#fef3c7;color:#92400e}#printReport .bad{background:#fee2e2;color:#991b1b}
+#printReport .lg td.l{white-space:normal}
+#printReport .pr-foot{margin-top:7px;font-size:7pt;color:#555;border-top:.6pt solid #b8c4c4;padding-top:4px}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  html,body{background:#fff!important}
+  body>*:not(#printReport){display:none!important}
+  #printReport{display:block!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
 /* toast */
 #toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:100}
 .toast{background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;box-shadow:var(--shadow);font-size:13px;animation:in .25s}
@@ -189,8 +251,9 @@ td.num{text-align:right;font-family:'JetBrains Mono',monospace}
         <label for="province"><i class="fa-solid fa-location-dot"></i> จังหวัด</label>
         <select class="inp" id="province" required></select>
       </div>
-      <button type="button" class="btn" onclick="document.getElementById('adv').classList.toggle('open')" title="ตัวเลือกเพิ่มเติม"><i class="fa-solid fa-sliders"></i><span>ตัวเลือก</span></button>
+      <button type="button" class="btn" id="btnOpt" onclick="document.getElementById('adv').classList.toggle('open')" title="ตัวเลือกเพิ่มเติม"><i class="fa-solid fa-sliders"></i><span>ตัวเลือก</span></button>
       <button type="submit" class="btn primary" id="btnFetch"><i class="fa-solid fa-play"></i><span>ดึงข้อมูล</span></button>
+      <button type="button" class="btn primary" id="btnNcd" onclick="loadNcd()"><i class="fa-solid fa-calculator"></i><span>คำนวณตัวชี้วัด</span></button>
     </div>
     <div class="wrap adv" id="adv" style="max-width:1280px">
       <div class="adv-in">
@@ -205,6 +268,90 @@ td.num{text-align:right;font-family:'JetBrains Mono',monospace}
 </div>
 
 <main class="wrap">
+
+  <div class="seg" role="tablist">
+    <button class="on" id="segExplorer" onclick="setView('explorer')"><i class="fa-solid fa-layer-group"></i> รายงานทั้งหมด</button>
+    <button id="segNcd" onclick="setView('ncd')"><i class="fa-solid fa-stethoscope"></i> NCD Clinic Plus</button>
+  </div>
+
+  <!-- NCD Clinic Plus view -->
+  <div class="view hidden" id="viewNcd">
+    <section class="card">
+      <div class="card-h">
+        <h2><i class="fa-solid fa-stethoscope" style="color:var(--brand-d)"></i> NCD Clinic Plus · 13 ตัวชี้วัด <span class="chip" id="ncdLabel">ยังไม่ได้คำนวณ</span></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <label class="field" style="flex-direction:row;align-items:center;gap:8px"><span class="muted" style="font-size:12px;white-space:nowrap"><i class="fa-regular fa-calendar"></i> ปีงบประมาณ</span><select class="inp" id="ncdYear" style="height:32px;width:96px" onchange="onNcdYear()"></select></label>
+          <button class="btn sm" onclick="printNcd()" title="สรุป 1 หน้า A4 เลือก 'บันทึกเป็น PDF' ในหน้าต่างพิมพ์"><i class="fa-solid fa-print"></i> พิมพ์ / PDF</button>
+          <button class="btn sm" onclick="openTrendAll()"><i class="fa-solid fa-chart-line"></i> แนวโน้มทั้ง 13 ข้อ</button>
+          <a class="btn sm" href="https://hdc.moph.go.th/cpm/public/kpi/9/2026" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> ดูต้นทางที่ HDC</a>
+          <button class="btn sm" onclick="exportNcdCSV()"><i class="fa-solid fa-file-csv" style="color:var(--ok)"></i> CSV</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <p class="muted" style="margin:0 0 12px;font-size:13px">เลือกปีและจังหวัดที่แถบด้านบน แล้วกด <b>คำนวณตัวชี้วัด</b> ระบบดึงข้อมูลรายหน่วยบริการจากตารางต้นทางของแต่ละตัวชี้วัดผ่าน MOPH Open Data แล้วรวมเป็นร้อยละ (ผลงาน A ÷ เป้าหมาย B × 100) ตัวเลขอาจต่างจากหน้า HDC เล็กน้อยตามเวลาประมวลผล</p>
+        <div class="progress hidden" id="ncdProg"><div></div></div>
+        <div class="muted" style="font-size:12px;margin-bottom:10px" id="ncdMsg"></div>
+        <div id="ncdSummary"></div>
+        <div class="kpi-grid" id="ncdGrid"></div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="ncdDetail">
+      <div class="card-h">
+        <h2 id="ndTitle" style="font-size:15px"></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <label class="switch" style="height:30px"><input type="checkbox" id="ndAll" onchange="nd.all=this.checked;renderDetail()"><i></i><span>แสดงทุกคอลัมน์ย่อย</span></label>
+          <button class="btn sm" onclick="exportDetailCSV()"><i class="fa-solid fa-file-csv" style="color:var(--ok)"></i> CSV</button>
+          <button class="btn sm" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i> ปิด</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="pills" id="ndCrumb" style="align-items:center"></div>
+        <div class="muted" style="font-size:12px;margin-bottom:10px" id="ndHint"></div>
+        <div class="tbar" style="margin:6px 0 8px">
+          <b style="font-size:13px"><i class="fa-solid fa-chart-bar" style="color:var(--brand-d)"></i> แผนภูมิเปรียบเทียบ</b>
+          <select class="inp" id="ndSort" style="height:30px" onchange="nd.sort=this.value;renderDetail()">
+            <option value="best">เรียง: ดีที่สุดก่อน</option><option value="worst">เรียง: ต่ำที่สุดก่อน</option><option value="code">เรียง: ตามรหัสพื้นที่</option>
+          </select>
+        </div>
+        <div class="muted" style="font-size:12px;margin-bottom:6px" id="ndChartInfo"></div>
+        <div id="ndChartBox" style="position:relative;margin-bottom:18px"><canvas id="ndChart"></canvas></div>
+        <div class="tbl-wrap"><table><thead id="ndHead"></thead><tbody id="ndBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="ncdTrend">
+      <div class="card-h">
+        <h2 id="ntTitle" style="font-size:15px"></h2>
+        <button class="btn sm" onclick="closeTrend()"><i class="fa-solid fa-xmark"></i> ปิด</button>
+      </div>
+      <div class="card-b">
+        <div class="muted" style="font-size:12px;margin-bottom:10px" id="ntMsg"></div>
+        <div class="trend-box"><canvas id="trendChart"></canvas></div>
+        <div class="tbl-wrap" style="margin-top:14px"><table>
+          <thead><tr><th style="cursor:default">ปี</th><th style="cursor:default;text-align:right">B (เป้าหมาย)</th><th style="cursor:default;text-align:right">A (ผลงาน)</th><th style="cursor:default;text-align:right">ร้อยละ</th><th style="cursor:default;text-align:right">เปลี่ยนจากปีก่อน (จุด%)</th></tr></thead>
+          <tbody id="ntBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="ncdTrendAll">
+      <div class="card-h">
+        <h2 id="taTitle" style="font-size:15px"></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm" onclick="exportTrendAllCSV()"><i class="fa-solid fa-file-csv" style="color:var(--ok)"></i> CSV</button>
+          <button class="btn sm" onclick="closeTrendAll()"><i class="fa-solid fa-xmark"></i> ปิด</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="progress hidden" id="taProg"><div></div></div>
+        <div class="muted" style="font-size:12px;margin-bottom:10px" id="taMsg"></div>
+        <div class="tbl-wrap" style="max-height:none;margin-bottom:18px"><table id="taTable"></table></div>
+        <div class="kpi-grid" id="taGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="view" id="viewExplorer">
 
   <!-- Step 1: Catalog -->
   <section class="card" id="catalog">
@@ -317,8 +464,10 @@ td.num{text-align:right;font-family:'JetBrains Mono',monospace}
       <pre class="code"><button class="btn sm copy" onclick="copyCode()"><i class="fa-regular fa-copy"></i> <span id="copyBtnText">คัดลอก</span></button><code id="codeViewer"></code></pre>
     </div>
   </section>
+  </div><!-- /viewExplorer -->
 </main>
 <div id="toasts"></div>
+<section id="printReport" aria-hidden="true"></section>
 
 <script>
 // ================= State =================
@@ -347,6 +496,7 @@ function toggleTheme() {
   const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   store.set('moph_theme', t); applyTheme(t);
   if (chartInstance && rawDataStore.length) renderChart();
+  if (nd) renderDetail();
 }
 applyTheme(store.get('moph_theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
@@ -458,9 +608,9 @@ function renderRecents() {
 
 // ================= Init =================
 document.addEventListener("DOMContentLoaded", () => {
-  $('province').innerHTML = PROVINCES.map(p => { const [c, ...n] = p.split(' '); return `<option value="${c}">${n.join(' ')} (${c})</option>`; }).join('');
+  fillProvinces();
+  initNcdYear();
   const last = store.get('moph_last', {});
-  $('province').value = last.province || '36';
   $('year').innerHTML = Array.from({ length: 11 }, (_, i) => 2570 - i).map(y => `<option>${y}</option>`).join('');
   $('year').value = last.year || '2568';
   if (last.tableName) $('tableName').value = last.tableName;
@@ -740,6 +890,538 @@ async function copyCode() {
     const t = document.createElement('textarea'); t.value = $('codeViewer').textContent; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
   }
   toast('คัดลอกโค้ดแล้ว');
+}
+
+// ================= NCD Clinic Plus (ตัวชี้วัดจาก HDC: hdc.moph.go.th/cpm/public/kpi/9) =================
+// ค่าเริ่มต้น: B = target, A = result
+// alt = '_13'  → HDC ใช้ target_13/result_13 เป็นตัวชี้วัดหลัก
+// tk / rk      → ระบุคอลัมน์ B / A เอง (ข้อ 5: b1, a1 ตรงกับ HDC)
+// rf(row)      → สูตร A เอง (ข้อ 9: A = A1+A2+A3 = r1+r4+r5)
+// sec          → ร้อยละรอง (ข้อ 5: ผู้ป่วยที่มารับบริการ b2/a2)
+const SEC_FU = { tk: 'target1', rk: 'result1', label: 'กลุ่มผู้มารับบริการ (CHRONICFU)' };
+const NCD_KPIS = [
+  { w: 1, code: 'e9e461e793e8258f47d46d6956f12832', table: 's_ncd_screen_repleate1', alt: '_13', name: 'ร้อยละการตรวจติดตามยืนยันวินิจฉัยกลุ่มสงสัยป่วยโรคเบาหวาน' },
+  { w: 2, code: '0f23318497737af76b19e98304dbcec7', table: 's_ncd_ldl_n1', sec: SEC_FU, name: 'ร้อยละของผู้ป่วยเบาหวานที่ได้รับการตรวจไขมัน LDL' },
+  { w: 3, code: 'ab10d2cee3bd010cd0aab0148bbd0c6c', table: 's_ncd_ldl_n2', sec: SEC_FU, name: 'ร้อยละของผู้ป่วยเบาหวานที่ได้รับการตรวจไขมัน LDL และควบคุมได้ตามเกณฑ์' },
+  { w: 4, code: '137a726340e4dfde7bbbc5d8aeee3ac3', table: 's_dm_control', sec: SEC_FU, name: 'ร้อยละผู้ป่วยโรคเบาหวานที่ควบคุมระดับน้ำตาลได้ดี' },
+  { w: 5, code: 'ac9019f14a00b66984dd9efc3afc06a6', table: 's_ncd_bp', tk: 'b1', rk: 'a1', sec: { tk: 'b2', rk: 'a2', label: 'กลุ่มผู้มารับบริการ (CHRONICFU)' }, name: 'ร้อยละของผู้ป่วยเบาหวานที่มีความดันโลหิตควบคุมได้ตามเกณฑ์' },
+  { w: 6, code: '735890fbb28aa2989052648af8cb4600', table: 's_bmi2year', rf: x => (+x.target || 0) - (+x.result || 0), aLabel: 'B−A (ที่ลดลง)', note: 'สูตร (B−A)/B×100 เมื่อ B = ผู้ป่วยอ้วนปีก่อน, A = ผู้ป่วยอ้วนปีนี้', name: 'ร้อยละของผู้ป่วยเบาหวานที่มีภาวะอ้วน [BMI >= 25 กก./ตร.ม.] ลดลงจากงบประมาณที่ผ่านมา' },
+  { w: 7, code: 'b06544333648315e83c83445a62dd94e', table: 's_dm_hypo', tk: 'target_1', rk: 'result_1', sec: { tk: 'target', rk: 'result', label: 'กลุ่มผู้มารับบริการ (CHRONICFU)' }, name: 'ร้อยละของการเกิดภาวะแทรกซ้อนเฉียบพลันในผู้ป่วยเบาหวาน' },
+  { w: 8, code: 'b57439ff27302ade8c38d1dd189644a4', table: 's_ht_screen_follow', alt: '_13', name: 'ร้อยละการตรวจติดตามยืนยันวินิจฉัยกลุ่มสงสัยป่วยโรคความดันโลหิตสูง' },
+  { w: 9, code: 'c72b4c288364ba0f84160cbb4182b3f9', table: 's_ht180_diag', rf: x => (+x.r1 || 0) + (+x.r4 || 0) + (+x.r5 || 0), name: 'ร้อยละของผู้ที่มีค่าความดันโลหิตตัวบนเฉลี่ย (SBP) ≥ 180 mmHg และ/หรือตัวล่าง (DBP) ≥ 110 mmHg จากการคัดกรอง ได้รับการวินิจฉัย' },
+  { w: 10, code: '2e3813337b6b5377c2f68affe247d5f9', table: 's_ht_control', rk: 'result_bp1_d', sec: { tk: 'target1', rk: 'result_bp1_f', label: 'กลุ่มผู้มารับบริการ (CHRONICFU)' }, name: 'ร้อยละผู้ป่วยโรคความดันโลหิตสูงที่ควบคุมความดันโลหิตได้ดี' },
+  { w: 11, code: '0f6df79c2f8887f50d7879b5fe91c080', table: 's_kpi_ckd_screen', name: 'ร้อยละของผู้ป่วย DM และ/หรือ HT ที่ได้รับการค้นหาและคัดกรองโรคไตเรื้อรัง' },
+  { w: 12, code: 'cb65de9ec5fa4e5987b43da669b2280d', table: 's_cvd_change20', name: 'ร้อยละของผู้ป่วย DM และ/หรือ HT ที่มี CVD Risk ≥ 20% ในไตรมาส 1, 2 และมีผลลดลงเป็น < 20% ในไตรมาส 3, 4' },
+  { w: 13, code: '752f4de6e90d3e41b3cb8f8104b2e8bd', table: 's_dmht_ckd_egfr', name: 'ร้อยละของผู้ป่วย DM และ/หรือ HT ที่เป็น CKD 3-4 ชะลอการลดลงของ eGFR ได้ตามเป้าหมาย' }
+];
+const AMP_NAMES = { 3601: 'เมืองชัยภูมิ', 3602: 'บ้านเขว้า', 3603: 'คอนสวรรค์', 3604: 'เกษตรสมบูรณ์', 3605: 'หนองบัวแดง', 3606: 'จัตุรัส', 3607: 'บำเหน็จณรงค์', 3608: 'หนองบัวระเหว', 3609: 'เทพสถิต', 3610: 'ภูเขียว', 3611: 'บ้านแท่น', 3612: 'แก้งคร้อ', 3613: 'คอนสาร', 3614: 'ภักดีชุมพล', 3615: 'เนินสง่า', 3616: 'ซับใหญ่' };
+let ncdResults = {}, ncdRaw = {}, ncdEff = {}, ncdMeta = { year: '', province: '' }, ncdRunning = false, nd = null;
+
+// ล็อกเฉพาะจังหวัดชัยภูมิทั้งแอป (ถ้าต้องการเปิดให้เลือกครบ ให้ส่งค่า false)
+const LOCK_PROVINCE = true;
+function fillProvinces(lock = LOCK_PROVINCE) {
+  const sel = $('province');
+  const list = lock ? PROVINCES.filter(p => p.startsWith('36 ')) : PROVINCES;
+  sel.innerHTML = list.map(p => { const [c, ...n] = p.split(' '); return `<option value="${c}">${n.join(' ')} (${c})</option>`; }).join('');
+  sel.value = '36';
+  sel.disabled = lock;
+  sel.title = lock ? 'แอปนี้แสดงเฉพาะจังหวัดชัยภูมิ' : '';
+  updateCodeSnippets();
+}
+function setView(v) {
+  document.body.dataset.view = v;
+  $('viewNcd').classList.toggle('hidden', v !== 'ncd');
+  $('viewExplorer').classList.toggle('hidden', v === 'ncd');
+  $('segNcd').classList.toggle('on', v === 'ncd');
+  $('segExplorer').classList.toggle('on', v !== 'ncd');
+  if (v === 'ncd') { renderNcd(); if (!Object.keys(ncdResults).length) loadNcd(); }
+}
+async function postRetry(payload) {
+  for (let t = 0; t < 5; t++) {
+    const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    if (res.status === 429) { await sleep(1500 * (t + 1)); continue; }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    try { return JSON.parse(await res.text()); } catch (e) { await sleep(1000); }
+  }
+  throw new Error('เรียกถี่เกินไป ลองใหม่อีกครั้ง');
+}
+async function fetchAllRows(table, year, province) {
+  let all = [], offset = 0; const limit = 2000;
+  while (true) {
+    const j = await postRetry({ tableName: table, year, province, type: 'json', limit, offset });
+    const rec = j.data || [];
+    all = all.concat(rec);
+    if (rec.length < limit || all.length >= (parseInt(j.total) || 0)) break;
+    offset += limit;
+  }
+  return all;
+}
+function kpiGet(k) {   // ฟังก์ชันอ่านค่า B (เป้าหมาย) และ A (ผลงาน) ของแต่ละแถว
+  const tk = k.tk || 'target' + (k.alt || ''), rk = k.rk || 'result' + (k.alt || '');
+  return { t: x => +x[tk] || 0, r: k.rf || (x => +x[rk] || 0) };
+}
+function computeKpi(k, rows) {
+  rows = rows.filter(x => !x.id || x.id === k.code);
+  // ใช้แถวข้อมูลปัจจุบัน (date_fz ว่าง) ก่อน; ถ้าไม่มีเลย (ปีที่ freeze ไปแล้ว) ใช้รอบ freeze ล่าสุด
+  const live = rows.filter(x => !x.date_fz);
+  if (live.length) rows = live;
+  else { const fz = rows.map(x => x.date_fz).filter(Boolean).sort().pop(); if (fz) rows = rows.filter(x => x.date_fz === fz); }
+  const out = { n: rows.length, T: null, R: null, rate: null, amp: [] };
+  out.rows = rows;
+  if (!rows.length) return out;
+  const g = kpiGet(k);
+  const amp = {};
+  let T = 0, R = 0, sT = 0, sR = 0;
+  rows.forEach(x => {
+    const t = g.t(x), r = g.r(x); T += t; R += r;
+    if (k.sec) { sT += +x[k.sec.tk] || 0; sR += +x[k.sec.rk] || 0; }
+    const a = String(x.areacode || '').slice(0, 4);
+    if (a) { amp[a] = amp[a] || { code: a, T: 0, R: 0 }; amp[a].T += t; amp[a].R += r; }
+  });
+  out.T = T; out.R = R; out.rate = T ? R / T * 100 : null;
+  if (k.sec) out.sec = { label: k.sec.label, T: sT, R: sR, rate: sT ? sR / sT * 100 : null };
+  out.amp = Object.values(amp).sort((a, b) => a.code.localeCompare(b.code)).map(a => ({ ...a, rate: a.T ? a.R / a.T * 100 : null }));
+  return out;
+}
+// ปีเก่าอาจยังไม่มีคอลัมน์ *_13 (ข้อ 1, 8) → ถอยไปใช้ target/result และทำเครื่องหมาย approx
+function computeKpiAuto(k, rows) {
+  const hasAlt = !k.alt || rows.some(x => !x.date_fz && (+x['target' + k.alt] || 0) > 0);
+  const kEff = hasAlt ? k : { ...k, alt: '' };
+  const c = computeKpi(kEff, rows);
+  c.approx = !hasAlt; c.kEff = kEff;
+  return c;
+}
+let ncdToken = 0, ncdYearTimer;
+const NCD_YEARS = [2569, 2568, 2567, 2566, 2565];   // ปีงบประมาณที่ HDC มีตัวชี้วัดชุดนี้
+function initNcdYear() {
+  $('ncdYear').innerHTML = NCD_YEARS.map(y => `<option>${y}</option>`).join('');
+  const saved = String(store.get('moph_ncd_year', NCD_YEARS[0]));
+  $('ncdYear').value = NCD_YEARS.map(String).includes(saved) ? saved : String(NCD_YEARS[0]);
+}
+function onNcdYear() {   // เปลี่ยนปีแล้วคำนวณใหม่อัตโนมัติ (หน่วงเล็กน้อยเผื่อกดเปลี่ยนหลายครั้ง)
+  store.set('moph_ncd_year', $('ncdYear').value);
+  clearTimeout(ncdYearTimer); ncdYearTimer = setTimeout(loadNcd, 350);
+}
+async function loadNcd() {
+  const token = ++ncdToken;   // ถ้ามีการสั่งใหม่ระหว่างคำนวณ รอบเก่าจะหยุดเอง
+  ncdRunning = true;
+  const year = $('ncdYear').value, province = $('province').value;
+  ncdMeta = { year, province }; ncdResults = {}; ncdRaw = {}; ncdEff = {}; nd = null; trendCache = {}; $('ncdDetail').classList.add('hidden'); closeTrend(); closeTrendAll();
+  $('btnNcd').disabled = true; $('ncdProg').classList.remove('hidden'); $('ncdProg').firstElementChild.style.width = '0';
+  renderNcd();
+  let done = 0, failed = 0;
+  for (const k of NCD_KPIS) {
+    $('ncdMsg').textContent = `กำลังดึงข้อมูล ${done + 1}/${NCD_KPIS.length}: ${k.table}`;
+    try {
+      const rows = await fetchAllRows(k.table, year, province);
+      if (token !== ncdToken) return;
+      const c = computeKpiAuto(k, rows); ncdRaw[k.w] = c.rows || []; ncdEff[k.w] = c.kEff; delete c.rows; delete c.kEff; ncdResults[k.w] = c;
+    } catch (e) { if (token !== ncdToken) return; ncdResults[k.w] = { error: e.message }; failed++; }
+    done++; $('ncdProg').firstElementChild.style.width = (done / NCD_KPIS.length * 100) + '%';
+    renderNcd(); await sleep(400);
+    if (token !== ncdToken) return;
+  }
+  $('ncdMsg').textContent = failed ? `เสร็จสิ้น (ไม่สำเร็จ ${failed} ตัวชี้วัด — กด "คำนวณตัวชี้วัด" เพื่อลองใหม่)` : 'คำนวณครบทั้ง 13 ตัวชี้วัดแล้ว';
+  $('ncdProg').classList.add('hidden'); $('btnNcd').disabled = false; ncdRunning = false;
+  if (!failed) toast('คำนวณตัวชี้วัด NCD Clinic Plus เสร็จแล้ว');
+}
+function ncdProvName() { const o = $('province').querySelector(`option[value="${ncdMeta.province || $('province').value}"]`); return o ? o.textContent.replace(/\s*\(\d+\)$/, '') : ''; }
+// เป้าหมายตามที่กราฟของ HDC แสดง (แก้ตัวเลขที่นี่ได้) · lower = ยิ่งต่ำยิ่งดี · ข้อ 9 หน้า HDC ไม่ระบุเป้าหมาย
+const NCD_TARGETS = { 1: { v: 70 }, 2: { v: 85 }, 3: { v: 55 }, 4: { v: 40 }, 5: { v: 60 }, 6: { v: 5 }, 7: { v: 2, lower: true }, 8: { v: 80 }, 10: { v: 60 }, 11: { v: 80 }, 12: { v: 50 }, 13: { v: 69 } };
+const NCD_NEAR = 0.9;   // ถึง 90% ของเป้าหมาย (หรือเกินเกณฑ์ไม่เกิน 1/0.9 เท่า) = "ใกล้เป้า"
+function ncdStatus(w, rate) {
+  const t = NCD_TARGETS[w];
+  if (!t || rate == null || isNaN(rate)) return null;
+  if (t.lower) return rate <= t.v ? 'ok' : rate <= t.v / NCD_NEAR ? 'warn' : 'bad';
+  return rate >= t.v ? 'ok' : rate >= t.v * NCD_NEAR ? 'warn' : 'bad';
+}
+function ncdStatusLabel(w, st) {
+  const lower = (NCD_TARGETS[w] || {}).lower;
+  return { ok: 'ผ่านเป้า', warn: 'ใกล้เป้า', bad: lower ? 'เกินเกณฑ์' : 'ต่ำกว่าเป้า' }[st] || '';
+}
+const ncdTargetText = w => { const t = NCD_TARGETS[w]; return t ? `เป้าหมาย ${t.lower ? '≤' : '≥'} ${t.v}%` : 'ไม่ระบุเป้าหมาย'; };
+const stClass = (w, v) => { const s = ncdStatus(w, v === '–' ? null : Number(v)); return s ? 'st-' + s : ''; };
+function renderNcd() {
+  const y = ncdMeta.year || $('ncdYear').value;
+  $('ncdLabel').textContent = Object.keys(ncdResults).length ? `ปี ${y} · ${ncdProvName()}` : 'ยังไม่ได้คำนวณ';
+  const cnt = { ok: 0, warn: 0, bad: 0 };
+  NCD_KPIS.forEach(k => { const s = ncdStatus(k.w, (ncdResults[k.w] || {}).rate); if (s) cnt[s]++; });
+  $('ncdSummary').innerHTML = cnt.ok + cnt.warn + cnt.bad ? `<span class="chip st-chip-ok">ผ่านเป้า ${cnt.ok}</span><span class="chip st-chip-warn">ใกล้เป้า ${cnt.warn}</span><span class="chip st-chip-bad">ต่ำกว่าเป้า/เกินเกณฑ์ ${cnt.bad}</span><span class="muted" style="font-size:12px">จากตัวชี้วัดที่มีเป้าหมายและคำนวณได้ · "ใกล้เป้า" = ถึง ${NCD_NEAR * 100}% ของเป้า</span>` : '';
+  $('ncdGrid').innerHTML = NCD_KPIS.map(k => {
+    const r = ncdResults[k.w];
+    const t = NCD_TARGETS[k.w], scale = t && (t.lower || t.v < 20) ? t.v * 2 : 100;
+    let val, sub, w = 0, st = null;
+    if (!r) { val = '–'; sub = 'รอคำนวณ'; }
+    else if (r.error) { val = '!'; sub = esc(r.error); }
+    else if (r.rate == null) { val = '–'; sub = r.n ? `มี ${r.n.toLocaleString()} แถว · ดูตารางดิบ` : 'ไม่พบข้อมูล'; }
+    else { val = r.rate.toFixed(2) + '%'; sub = `${r.R.toLocaleString()} / ${r.T.toLocaleString()}`; w = Math.min(r.rate / scale * 100, 100); st = ncdStatus(k.w, r.rate); }
+    return `<div class="kpi ${!r && ncdRunning ? 'skel' : ''}">
+      <div class="kpi-h"><span class="num">${k.w}</span><div class="name">${esc(k.name)}</div></div>
+      <div class="kpi-v"><b ${st ? `class="st-${st}"` : ''}>${val}</b><small>${sub}</small>${st ? `<span class="chip st-chip-${st}" style="margin-left:auto">${ncdStatusLabel(k.w, st)}</span>` : ''}</div>
+      <div class="bar ${st ? 'bar-' + st : ''}"><div style="width:${w}%"></div>${t ? `<i class="tick" style="left:${Math.min(t.v / scale * 100, 100)}%"></i>` : ''}</div>
+      <div class="muted" style="font-size:12px">${ncdTargetText(k.w)}</div>
+      ${k.note ? `<div class="muted" style="font-size:11.5px">${esc(k.note)}</div>` : ''}
+      ${r && r.approx ? `<div class="muted" style="font-size:11.5px;color:var(--warn)">* ปีนี้ตารางยังไม่มีคอลัมน์ _13 จึงใช้ target/result แทน อาจไม่ตรงกับ HDC</div>` : ''}
+      ${r && r.sec && r.sec.rate != null ? `<div class="muted" style="font-size:12px">${esc(r.sec.label)}: <b>${r.sec.rate.toFixed(2)}%</b> (${r.sec.R.toLocaleString()} / ${r.sec.T.toLocaleString()})</div>` : ''}
+      <div class="kpi-f"><span class="chip mono">${esc(k.table)}</span>
+        ${r && r.amp && r.amp.length ? `<button class="btn sm" onclick="openDetail(${k.w})"><i class="fa-solid fa-sitemap"></i> รายอำเภอ</button>
+        <button class="btn sm" onclick="openTrend(${k.w})"><i class="fa-solid fa-chart-line"></i> แนวโน้ม 5 ปี</button>` : ''}
+        <button class="btn sm" onclick="ncdOpen('${esc(k.table)}')"><i class="fa-solid fa-table"></i> ตารางดิบ</button></div></div>`;
+  }).join('');
+}
+// ---- แผงรายละเอียด: จังหวัด → อำเภอ → ตำบล → หน่วยบริการ ----
+const ND_SKIP = new Set(['id', 'hospcode', 'areacode', 'flag_sent', 'date_com', 'b_year', 'ip', 'yymm', 'date_fz', 'splevel']);
+const fmtN = v => (v == null || isNaN(v)) ? '–' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
+const pct = (a, b) => b ? (a / b * 100).toFixed(2) : '–';
+function openDetail(w) {
+  nd = { w, level: 0, amp: null, tam: null, all: false, sort: 'best', matrix: [] };
+  $('ndAll').checked = false; $('ndSort').value = 'best';
+  $('ncdDetail').classList.remove('hidden');
+  const k = NCD_KPIS.find(x => x.w === w);
+  if (!schemaCache[k.table]) siteGet('report_schema/' + encodeURIComponent(k.table)).then(s => { schemaCache[k.table] = s; renderDetail(); }).catch(() => {});
+  renderDetail();
+  ensureNames(ncdMeta.province).then(renderDetail).catch(() => toast('โหลดชื่ออำเภอ/หน่วยบริการไม่สำเร็จ จะแสดงเป็นรหัสแทน'));
+  $('ncdDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function closeDetail() { nd = null; $('ncdDetail').classList.add('hidden'); }
+function ndGo(level) { if (!nd) return; nd.level = level; if (level < 2) nd.tam = null; if (level < 1) nd.amp = null; renderDetail(); }
+function ndDrill(key) {
+  if (nd.level === 0) { nd.amp = key; nd.level = 1; ensureSubs(key).then(renderDetail).catch(() => {}); }
+  else if (nd.level === 1) { nd.tam = key; nd.level = 2; }
+  renderDetail();
+}
+// ชื่ออำเภอ/ตำบล/หน่วยบริการ จาก API ของ HDC (ใช้ได้ทุกจังหวัด) เก็บแคชในเบราว์เซอร์
+const HDC_API = "https://api-hdc.moph.go.th/v1", HDC_CENTER = "https://api-center-hdc.moph.go.th/v1";
+let nameStore = store.get('moph_names_v1', null) || { dist: {}, sub: {}, hosp: {} };
+async function hdcGet(url) {
+  for (let t = 0; t < 4; t++) {
+    try {
+      const res = await fetch(url);
+      if (res.status !== 429) { const j = JSON.parse(await res.text()); if (j.ok) return j.rows || []; }
+    } catch (e) {}
+    await sleep(1200 * (t + 1));
+  }
+  throw new Error('โหลดชื่อพื้นที่ไม่สำเร็จ');
+}
+const saveNames = () => store.set('moph_names_v1', nameStore);
+async function ensureNames(prov) {
+  if (!nameStore.dist[prov]) nameStore.dist[prov] = Object.fromEntries((await hdcGet(`${HDC_API}/lookup/district?provinceCode=${prov}`)).map(r => [r.code, r.name]));
+  if (!nameStore.hosp[prov]) nameStore.hosp[prov] = Object.fromEntries((await hdcGet(`${HDC_CENTER}/system/hospital?provinceCode=${prov}`)).map(r => [r.code, r.name]));
+  saveNames();
+}
+async function ensureSubs(amp) {
+  if (nameStore.sub[amp]) return;
+  nameStore.sub[amp] = Object.fromEntries((await hdcGet(`${HDC_API}/lookup/subdistrict?provinceCode=${amp.slice(0, 2)}&districtCode=${amp}`)).map(r => [r.code, r.name]));
+  saveNames();
+}
+function ndName(level, key) {
+  const p = ncdMeta.province;
+  if (level === 0) return (nameStore.dist[p] || {})[key] || (p === '36' && AMP_NAMES[key]) || 'อำเภอ ' + key;
+  if (level === 1) { const n = (nameStore.sub[key.slice(0, 4)] || {})[key]; return n ? `ต.${n}` : 'ตำบล ' + key; }
+  const h = (nameStore.hosp[p] || {})[key];
+  return h ? `${h} (${key})` : 'หน่วยบริการ ' + key;
+}
+function renderDetail() {
+  if (!nd) return;
+  const k = NCD_KPIS.find(x => x.w === nd.w), g = kpiGet(ncdEff[nd.w] || k);
+  const comments = Object.fromEntries((Array.isArray(schemaCache[k.table]) ? schemaCache[k.table] : []).map(c => [c.COLUMN_NAME, c.COLUMN_COMMENT]));
+  let rows = ncdRaw[nd.w] || [];
+  if (nd.amp) rows = rows.filter(x => String(x.areacode).startsWith(nd.amp));
+  if (nd.tam) rows = rows.filter(x => String(x.areacode).startsWith(nd.tam));
+  const keyOf = nd.level === 0 ? (x => String(x.areacode).slice(0, 4)) : nd.level === 1 ? (x => String(x.areacode).slice(0, 6)) : (x => String(x.hospcode));
+  const numCols = nd.all ? [...new Set(rows.flatMap(x => Object.keys(x).filter(c => !ND_SKIP.has(c) && x[c] !== null && x[c] !== '' && !isNaN(+x[c]))))] : [];
+  const groups = {};
+  rows.forEach(x => {
+    const key = keyOf(x); if (!key) return;
+    const gr = groups[key] = groups[key] || { T: 0, R: 0, sT: 0, sR: 0, s: {} };
+    gr.T += g.t(x); gr.R += g.r(x);
+    if (k.sec) { gr.sT += +x[k.sec.tk] || 0; gr.sR += +x[k.sec.rk] || 0; }
+    numCols.forEach(c => { gr.s[c] = (gr.s[c] || 0) + (+x[c] || 0); });
+  });
+  const keys = Object.keys(groups).sort();
+  const tot = { T: 0, R: 0, sT: 0, sR: 0, s: {} };
+  keys.forEach(key => { const gr = groups[key]; tot.T += gr.T; tot.R += gr.R; tot.sT += gr.sT; tot.sR += gr.sR; numCols.forEach(c => { tot.s[c] = (tot.s[c] || 0) + (gr.s[c] || 0); }); });
+  const levelName = ['อำเภอ', 'ตำบล', 'หน่วยบริการ'][nd.level];
+  const aLabel = k.aLabel || 'A (ผลงาน)';
+  const hdr = [levelName, 'B (เป้าหมาย)', aLabel, 'ร้อยละ'];
+  if (k.sec) hdr.push('B กลุ่มมารับบริการ', 'A กลุ่มมารับบริการ', 'ร้อยละ (กลุ่มมารับบริการ)');
+  numCols.forEach(c => hdr.push(c));
+  const line = (name, o) => {
+    const r = [name, o.T, o.R, pct(o.R, o.T)];
+    if (k.sec) r.push(o.sT, o.sR, pct(o.sR, o.sT));
+    numCols.forEach(c => r.push(o.s[c] || 0));
+    return r;
+  };
+  const body = keys.map(key => ({ key, cells: line(ndName(nd.level, key), groups[key]) }));
+  const totalRow = line('รวม', tot);
+  nd.matrix = [hdr, ...body.map(b => b.cells), totalRow];
+
+  $('ndTitle').innerHTML = `<span class="step">${k.w}</span> ${esc(k.name)}`;
+  const crumbs = [`<button type="button" class="pill ${nd.level === 0 ? 'on' : ''}" onclick="ndGo(0)">ทั้งจังหวัด</button>`];
+  if (nd.amp) crumbs.push(`<button type="button" class="pill ${nd.level === 1 ? 'on' : ''}" onclick="ndGo(1)">${esc(ndName(0, nd.amp))}</button>`);
+  if (nd.tam) crumbs.push(`<button type="button" class="pill on">${esc(ndName(1, nd.tam))}</button>`);
+  $('ndCrumb').innerHTML = crumbs.join('<span class="muted">›</span>');
+  $('ndHint').textContent = (nd.level < 2 ? 'คลิกแถวเพื่อดูระดับถัดไป · ' : '') + `${keys.length} รายการ · ปี ${ncdMeta.year} · ${ncdTargetText(k.w)} (สีเขียว = ผ่าน, เหลือง = ใกล้เป้า, แดง = ไม่ผ่าน)` + (k.note ? ' · ' + k.note : '');
+  $('ndHead').innerHTML = '<tr>' + hdr.map((h, i) => {
+    const c = i >= hdr.length - numCols.length && numCols.length ? h : null;
+    return `<th style="cursor:default;${i ? 'text-align:right' : ''}" title="${esc(c ? (comments[c] || c) : '')}">${esc(c && comments[c] ? comments[c] : h)}${c && comments[c] ? `<div class="muted mono" style="font-weight:400;font-size:10px">${esc(c)}</div>` : ''}</th>`;
+  }).join('') + '</tr>';
+  const cell = (v, i) => i === 0 ? esc(v) : (i === 3 || (k.sec && i === 6) ? v : fmtN(v));
+  $('ndBody').innerHTML = body.map(b => `<tr ${nd.level < 2 ? `style="cursor:pointer" onclick="ndDrill('${esc(b.key)}')"` : ''}>` +
+    b.cells.map((v, i) => `<td class="${i ? 'num' : ''} ${i === 3 ? stClass(k.w, v) : ''}">${cell(v, i)}</td>`).join('') + '</tr>').join('') +
+    `<tr style="font-weight:600;background:var(--brand-soft)">${totalRow.map((v, i) => `<td class="${i ? 'num' : ''} ${i === 3 ? stClass(k.w, v) : ''}">${cell(v, i)}</td>`).join('')}</tr>`;
+  drawDetailChart(k, keys.map(key => ({ key, name: ndName(nd.level, key), T: groups[key].T, R: groups[key].R })), tot);
+}
+// แผนภูมิแท่งเปรียบเทียบตามระดับที่เปิดอยู่ (อำเภอ / ตำบล / หน่วยบริการ)
+let detailChart = null;
+function drawDetailChart(k, items, tot) {
+  const css = getComputedStyle(document.documentElement), col = n => css.getPropertyValue(n).trim();
+  const t = NCD_TARGETS[k.w], lower = !!(t && t.lower);
+  const list = items.filter(i => i.T > 0).map(i => ({ ...i, rate: i.R / i.T * 100 }));
+  const skipped = items.length - list.length;
+  const mode = nd.sort || 'best';
+  if (mode === 'code') list.sort((a, b) => a.key.localeCompare(b.key));
+  else { const desc = (mode === 'best') !== lower; list.sort((a, b) => desc ? b.rate - a.rate : a.rate - b.rate); }
+  $('ndChartBox').style.height = Math.max(150, list.length * 26 + 70) + 'px';
+  $('ndChartInfo').textContent = `รวม ${tot.T ? (tot.R / tot.T * 100).toFixed(2) + '%' : '–'} · ${ncdTargetText(k.w)}${t ? ' (เส้นประ)' : ''}` +
+    (skipped ? ` · ไม่แสดง ${skipped} รายการที่ไม่มีเป้าหมาย (B = 0)` : '') + (nd.level < 2 ? ' · คลิกแท่งเพื่อดูระดับถัดไป' : '');
+  if (detailChart) detailChart.destroy();
+  if (!list.length) { detailChart = null; return; }
+  const statusColor = r => { const s = ncdStatus(k.w, r); return s ? col('--' + (s === 'bad' ? 'err' : s)) : col('--brand'); };
+  Chart.defaults.font.family = 'Prompt';
+  detailChart = new Chart($('ndChart'), {
+    type: 'bar',
+    data: { labels: list.map(i => i.name), datasets: [{ data: list.map(i => +i.rate.toFixed(2)), backgroundColor: list.map(i => statusColor(i.rate)), borderRadius: 4, barPercentage: .78 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 64 } },
+      onClick: (e, els) => { if (els.length && nd.level < 2) ndDrill(list[els[0].index].key); },
+      onHover: (e, els) => { e.native.target.style.cursor = els.length && nd.level < 2 ? 'pointer' : 'default'; },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: c => `${c.parsed.x.toFixed(2)}%  (${list[c.dataIndex].R.toLocaleString()} / ${list[c.dataIndex].T.toLocaleString()})`
+        } }
+      },
+      scales: {
+        x: { beginAtZero: true, max: t && (t.lower || t.v < 20) ? undefined : 100, ticks: { color: col('--muted'), callback: v => v + '%' }, grid: { color: col('--border') } },
+        y: { ticks: { color: col('--text'), callback(v) { const s = this.getLabelForValue(v); return s.length > 30 ? s.slice(0, 29) + '…' : s; } }, grid: { display: false } }
+      }
+    },
+    plugins: [{
+      id: 'valuesAndTarget',
+      afterDatasetsDraw(c) {
+        const { ctx, chartArea: a, scales: { x } } = c;
+        ctx.save();
+        ctx.font = '12px Prompt'; ctx.fillStyle = col('--text'); ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        c.getDatasetMeta(0).data.forEach((bar, i) => ctx.fillText(c.data.datasets[0].data[i].toFixed(2) + '%', Math.max(bar.x, x.getPixelForValue(0)) + 6, bar.y));
+        if (t) {
+          const px = x.getPixelForValue(t.v);
+          ctx.setLineDash([6, 4]); ctx.strokeStyle = col('--text'); ctx.globalAlpha = .65; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }]
+  });
+}
+// ---- แนวโน้มย้อนหลัง 5 ปี (ปีที่เลือก และย้อนหลังอีก 4 ปี) ----
+let trendChart = null, trendCache = {}, ntToken = 0;
+function trendCompute(k, rows) {
+  const c = computeKpiAuto(k, rows);
+  return { T: c.T, R: c.R, rate: c.rate, n: c.n, approx: c.approx };
+}
+async function openTrend(w) {
+  const k = NCD_KPIS.find(x => x.w === w), y0 = +ncdMeta.year, token = ++ntToken;
+  const years = [4, 3, 2, 1, 0].map(d => y0 - d);
+  $('ncdTrend').classList.remove('hidden');
+  $('ntTitle').innerHTML = `<span class="step">${k.w}</span> ${esc(k.name)} · แนวโน้ม ${years[0]}–${y0}`;
+  $('ncdTrend').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const pts = await fetchTrendPts(k, y0, () => token === ntToken, yr => { $('ntMsg').textContent = `กำลังดึงข้อมูลปี ${yr}...`; });
+  if (pts) renderTrend(k, pts);
+}
+// ดึงอัตราย้อนหลัง 5 ปีของตัวชี้วัดหนึ่งข้อ (ใช้ร่วมกับหน้าแนวโน้มทั้ง 13 ข้อ) · แคชตามจังหวัด/ปี
+async function fetchTrendPts(k, y0, alive, onYear) {
+  const key = `${k.w}|${ncdMeta.province}|${y0}`;
+  if (trendCache[key]) return trendCache[key];
+  const pts = [];
+  for (const yr of [4, 3, 2, 1, 0].map(d => y0 - d)) {
+    if (!alive()) return null;
+    if (onYear) onYear(yr);
+    if (yr === y0) { const c = ncdResults[k.w] || {}; pts.push({ year: yr, T: c.T, R: c.R, rate: c.rate, n: c.n, approx: c.approx }); continue; }
+    try { pts.push({ year: yr, ...trendCompute(k, await fetchAllRows(k.table, String(yr), ncdMeta.province)) }); }
+    catch (e) { pts.push({ year: yr, error: true }); }
+    await sleep(300);
+  }
+  if (!alive()) return null;
+  trendCache[key] = pts;
+  return pts;
+}
+function renderTrend(k, pts) {
+  const css = getComputedStyle(document.documentElement), col = n => css.getPropertyValue(n).trim();
+  const t = NCD_TARGETS[k.w];
+  const approx = pts.some(p => p.approx), failed = pts.some(p => p.error);
+  $('ntMsg').textContent = `${ncdTargetText(k.w)}${t ? ' (เส้นประ)' : ''}` + (approx ? ' · * ปีเก่ายังไม่มีคอลัมน์ _13 ใช้ target/result แทน อาจไม่ตรงกับ HDC' : '') + (failed ? ' · บางปีดึงข้อมูลไม่สำเร็จ' : '') + (pts.some(p => !p.error && !p.n) ? ' · ปีที่แสดง – คือระบบต้นทางไม่มีข้อมูลของปีนั้น' : '') + (k.note ? ' · ' + k.note : '');
+  const rates = pts.map(p => p.rate == null ? null : +p.rate.toFixed(2));
+  const ds = [{ label: 'ร้อยละ', data: rates, borderColor: col('--brand'), backgroundColor: col('--brand'), tension: .25, spanGaps: false, pointRadius: 5,
+    pointBackgroundColor: pts.map(p => { const s = ncdStatus(k.w, p.rate); return s ? col('--' + (s === 'bad' ? 'err' : s)) : col('--brand'); }) }];
+  if (t) ds.push({ label: ncdTargetText(k.w), data: pts.map(() => t.v), borderColor: col('--muted'), borderDash: [6, 5], pointRadius: 0, fill: false });
+  if (trendChart) trendChart.destroy();
+  Chart.defaults.font.family = 'Prompt';
+  trendChart = new Chart($('trendChart'), { type: 'line', data: { labels: pts.map(p => p.year + (p.approx ? '*' : '')), datasets: ds },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: col('--muted') } } },
+      scales: { x: { ticks: { color: col('--muted') }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: col('--muted'), callback: v => v + '%' }, grid: { color: col('--border') } } } } });
+  $('ntBody').innerHTML = pts.map((p, i) => {
+    const prev = i ? pts[i - 1].rate : null, d = p.rate != null && prev != null ? p.rate - prev : null;
+    const good = d == null ? '' : ((t && t.lower) ? d <= 0 : d >= 0) ? 'st-ok' : 'st-bad';
+    return `<tr><td>${p.year}${p.approx ? '*' : ''}</td><td class="num">${p.error ? 'ผิดพลาด' : fmtN(p.T)}</td><td class="num">${fmtN(p.R)}</td>
+      <td class="num ${stClass(k.w, p.rate == null ? '–' : p.rate.toFixed(2))}">${p.rate == null ? '–' : p.rate.toFixed(2)}</td>
+      <td class="num ${good}">${d == null ? '–' : (d > 0 ? '+' : '') + d.toFixed(2)}</td></tr>`;
+  }).join('');
+}
+function closeTrend() { ntToken++; $('ncdTrend').classList.add('hidden'); }
+
+// ---- รายงานสรุป 1 หน้า A4 สำหรับพิมพ์ / บันทึกเป็น PDF ----
+function buildPrintReport() {
+  const y = ncdMeta.year, prov = ncdProvName(), p = ncdMeta.province;
+  const R = k => ncdResults[k.w] || {};
+  const st = (w, rate) => ncdStatus(w, rate) || '';
+  // วันที่ประมวลผลข้อมูลล่าสุด (date_com รูปแบบ YYYYMMDDHHMM ค.ศ.)
+  let dc = ''; Object.values(ncdRaw).forEach(rows => rows.forEach(x => { if (x.date_com && String(x.date_com) > dc) dc = String(x.date_com); }));
+  const fmtDate = d => d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dcText = dc.length >= 8 ? fmtDate(new Date(+dc.slice(0, 4), +dc.slice(4, 6) - 1, +dc.slice(6, 8))) + (dc.length >= 12 ? ` ${dc.slice(8, 10)}:${dc.slice(10, 12)} น.` : '') : '–';
+  const cnt = { ok: 0, warn: 0, bad: 0 };
+  NCD_KPIS.forEach(k => { const s = ncdStatus(k.w, R(k).rate); if (s) cnt[s]++; });
+  // ตารางอำเภอ × ตัวชี้วัด
+  const amps = [...new Set(NCD_KPIS.flatMap(k => (R(k).amp || []).map(a => a.code)))].sort();
+  const byAmp = Object.fromEntries(NCD_KPIS.map(k => [k.w, Object.fromEntries((R(k).amp || []).map(a => [a.code, a]))]));
+  const cell = (k, rate) => rate == null ? '<td class="n">–</td>' : `<td class="n ${st(k.w, rate)}">${rate.toFixed(1)}</td>`;
+  const matrix = `<table><thead>
+    <tr><th rowspan="2" style="text-align:left">อำเภอ</th>${NCD_KPIS.map(k => `<th>${k.w}</th>`).join('')}</tr>
+    <tr>${NCD_KPIS.map(k => { const t = NCD_TARGETS[k.w]; return `<th style="font-weight:400;font-size:7pt">${t ? (t.lower ? '≤' : '≥') + t.v : '–'}</th>`; }).join('')}</tr></thead><tbody>` +
+    amps.map(code => `<tr><td class="nm">${esc(ndName(0, code))}</td>${NCD_KPIS.map(k => cell(k, (byAmp[k.w][code] || {}).rate)).join('')}</tr>`).join('') +
+    `<tr class="tot"><td class="nm">รวมทั้งจังหวัด</td>${NCD_KPIS.map(k => cell(k, R(k).rate)).join('')}</tr></tbody></table>`;
+  // ตารางสรุปตัวชี้วัด (+เทียบปีก่อนถ้าเปิดหน้าแนวโน้มไว้แล้ว)
+  const prev = k => { const pts = trendCache[`${k.w}|${p}|${y}`]; return pts && pts.length > 1 ? pts[pts.length - 2].rate : undefined; };
+  const hasPrev = NCD_KPIS.every(k => prev(k) !== undefined);
+  const legend = `<table class="lg"><thead><tr><th>#</th><th style="text-align:left">ตัวชี้วัด</th><th>เป้าหมาย</th><th>ผลงาน (A)</th><th>เป้าหมาย (B)</th><th>ร้อยละ</th><th>สถานะ</th>${hasPrev ? `<th>ปี ${y - 1}</th><th>เปลี่ยน</th>` : ''}</tr></thead><tbody>` +
+    NCD_KPIS.map(k => {
+      const r = R(k), t = NCD_TARGETS[k.w], s = st(k.w, r.rate);
+      let extra = '';
+      if (hasPrev) { const pv = prev(k), d = r.rate != null && pv != null ? r.rate - pv : null; extra = `<td class="n">${pv == null ? '–' : pv.toFixed(2)}</td><td class="n">${d == null ? '–' : (d > 0 ? '▲ +' : d < 0 ? '▼ ' : '') + d.toFixed(2)}</td>`; }
+      return `<tr><td class="n">${k.w}</td><td class="l">${esc(k.name)}${k.aLabel ? '<br><span style="color:#555;font-size:7pt">ผลงาน (A) ในตารางนี้ = จำนวนที่ลดลง (B−A)</span>' : ''}</td><td class="n">${t ? (t.lower ? '≤ ' : '≥ ') + t.v : '–'}</td><td class="n">${r.R == null ? '–' : r.R.toLocaleString()}</td><td class="n">${r.T == null ? '–' : r.T.toLocaleString()}</td>` +
+        `<td class="n ${s}" style="font-weight:700">${r.rate == null ? '–' : r.rate.toFixed(2) + (r.approx ? '*' : '')}</td><td class="n ${s}" style="text-align:center">${s ? ncdStatusLabel(k.w, s) : '–'}</td>${extra}</tr>`;
+    }).join('') + '</tbody></table>';
+  const approx = NCD_KPIS.some(k => R(k).approx);
+  return `<div class="pr-head"><div><h1>สรุปตัวชี้วัด NCD Clinic Plus</h1><div class="pr-sub">จังหวัด${esc(prov)} · ปีงบประมาณ ${y}</div></div>
+      <div class="pr-meta">ข้อมูลประมวลผลล่าสุด: ${dcText}<br>พิมพ์เมื่อ: ${fmtDate(new Date())}</div></div>
+    <div class="pr-chips"><span class="ok">ผ่านเป้า ${cnt.ok} ข้อ</span><span class="warn">ใกล้เป้า ${cnt.warn} ข้อ</span><span class="bad">ต่ำกว่าเป้า/เกินเกณฑ์ ${cnt.bad} ข้อ</span>
+      <span style="color:#555;font-weight:400">จากตัวชี้วัดที่มีเป้าหมายและคำนวณได้ ${cnt.ok + cnt.warn + cnt.bad} ข้อ</span></div>
+    <h2>ร้อยละผลงานรายอำเภอ แยกตามตัวชี้วัด (ตัวเลขหัวตาราง = ลำดับตัวชี้วัด, แถวล่าง = เป้าหมาย %)</h2>${matrix}
+    <h2>รายละเอียดตัวชี้วัด</h2>${legend}
+    <div class="pr-foot">ร้อยละ = ผลงาน (A) ÷ เป้าหมาย (B) × 100 ตามนิยามตัวชี้วัดของ HDC (ข้อ 6 = (B−A)/B) · สี: เขียว = ผ่านเป้า, เหลือง = ถึง ${NCD_NEAR * 100}% ของเป้า, แดง = ต่ำกว่า (ข้อ 7 ยิ่งต่ำยิ่งดี) · ข้อ 9 ไม่ระบุเป้าหมายจึงไม่ลงสี · เป้าหมายตามที่แสดงบนกราฟของ HDC
+      ${approx ? '<br>* ปีนี้ตารางยังไม่มีคอลัมน์ _13 ใช้ target/result แทน อาจไม่ตรงกับ HDC' : ''}
+      <br>แหล่งข้อมูล: MOPH Open Data / HDC กระทรวงสาธารณสุข · คำนวณโดย MOPH Open Data Explorer ตัวเลขอาจต่างจากหน้า HDC เล็กน้อยตามเวลาประมวลผล</div>`;
+}
+let printTitleBackup = null;
+async function printNcd() {
+  if (ncdRunning || Object.keys(ncdResults).length < NCD_KPIS.length) { toast('รอให้คำนวณตัวชี้วัดเสร็จก่อน'); return; }
+  try { await ensureNames(ncdMeta.province); } catch (e) { /* ใช้รหัสแทนชื่อ */ }
+  $('printReport').innerHTML = buildPrintReport();
+  printTitleBackup = document.title;
+  document.title = `NCD_ClinicPlus_${ncdMeta.year}_${ncdProvName()}`;   // ชื่อไฟล์ PDF เริ่มต้น
+  setTimeout(() => window.print(), 100);
+}
+window.addEventListener('afterprint', () => { if (printTitleBackup) { document.title = printTitleBackup; printTitleBackup = null; } $('printReport').innerHTML = ''; });
+
+// ---- แนวโน้มทั้ง 13 ตัวชี้วัดในหน้าเดียว: ตาราง heatmap + กราฟเส้นย่อย ----
+let taToken = 0, taCharts = {}, taData = {};
+async function openTrendAll() {
+  if (ncdRunning || Object.keys(ncdResults).length < NCD_KPIS.length) { toast('รอให้คำนวณตัวชี้วัดปีปัจจุบันเสร็จก่อน'); return; }
+  const y0 = +ncdMeta.year, token = ++taToken, years = [4, 3, 2, 1, 0].map(d => y0 - d);
+  taData = {};
+  Object.values(taCharts).forEach(c => c.destroy()); taCharts = {};
+  $('ncdTrendAll').classList.remove('hidden');
+  $('taTitle').textContent = `แนวโน้มทั้ง 13 ตัวชี้วัด · ปี ${years[0]}–${y0} · ${ncdProvName()}`;
+  $('taProg').classList.remove('hidden'); $('taProg').firstElementChild.style.width = '0';
+  $('taGrid').innerHTML = NCD_KPIS.map(k => `<div class="kpi"><div class="kpi-h"><span class="num">${k.w}</span><div class="name clamp2" title="${esc(k.name)}">${esc(k.name)}</div></div>
+    <div style="position:relative;height:150px"><canvas id="taC${k.w}"></canvas></div></div>`).join('');
+  renderTrendAllTable(years);
+  $('ncdTrendAll').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  let done = 0;
+  for (const k of NCD_KPIS) {
+    $('taMsg').textContent = `กำลังดึงข้อมูลย้อนหลัง ข้อ ${k.w}/${NCD_KPIS.length} (${k.table})...`;
+    const pts = await fetchTrendPts(k, y0, () => token === taToken);
+    if (!pts) return;   // ปิดหน้า หรือสั่งใหม่
+    taData[k.w] = pts; done++;
+    $('taProg').firstElementChild.style.width = (done / NCD_KPIS.length * 100) + '%';
+    renderTrendAllTable(years); drawMiniTrend(k, pts);
+  }
+  $('taProg').classList.add('hidden');
+  const approx = Object.values(taData).some(p => p.some(x => x.approx)), missing = Object.values(taData).some(p => p.some(x => x.error || !x.n));
+  $('taMsg').textContent = 'ดึงครบทั้ง 13 ตัวชี้วัดแล้ว · สีช่อง/จุดตามเป้าหมาย (เขียว = ผ่าน, เหลือง = ใกล้เป้า, แดง = ไม่ผ่าน)' +
+    (approx ? ' · * ปีเก่าใช้ target/result แทนคอลัมน์ _13 (ข้อ 1, 8) อาจไม่ตรงกับ HDC' : '') + (missing ? ' · – คือระบบต้นทางไม่มีข้อมูลของปีนั้น หรือดึงไม่สำเร็จ' : '');
+}
+function renderTrendAllTable(years) {
+  const head = `<tr><th style="cursor:default">#</th><th style="cursor:default">ตัวชี้วัด</th><th style="cursor:default;text-align:right">เป้าหมาย</th>` +
+    years.map(y => `<th style="cursor:default;text-align:right">${y}</th>`).join('') + `<th style="cursor:default;text-align:right">เทียบปีก่อน (จุด%)</th></tr>`;
+  const body = NCD_KPIS.map(k => {
+    const pts = taData[k.w], t = NCD_TARGETS[k.w];
+    const cells = years.map((y, i) => {
+      if (!pts) return '<td class="num muted">…</td>';
+      const p = pts[i], has = p && p.rate != null;
+      return `<td class="num ${has ? stClass(k.w, p.rate.toFixed(2)) : ''}">${has ? p.rate.toFixed(2) + (p.approx ? '*' : '') : '–'}</td>`;
+    }).join('');
+    let delta = '<td class="num muted">–</td>';
+    if (pts) {
+      const a = pts[pts.length - 1].rate, b = pts[pts.length - 2].rate;
+      if (a != null && b != null) { const d = a - b, good = (t && t.lower) ? d <= 0 : d >= 0; delta = `<td class="num ${good ? 'st-ok' : 'st-bad'}">${d > 0 ? '▲ +' : d < 0 ? '▼ ' : ''}${d.toFixed(2)}</td>`; }
+    }
+    return `<tr><td class="num">${k.w}</td><td style="white-space:normal;min-width:260px;max-width:460px" title="${esc(k.name)}">${esc(k.name)}</td><td class="num">${t ? (t.lower ? '≤ ' : '≥ ') + t.v : '–'}</td>${cells}${delta}</tr>`;
+  }).join('');
+  $('taTable').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
+}
+function drawMiniTrend(k, pts) {
+  const el = $('taC' + k.w); if (!el) return;
+  const css = getComputedStyle(document.documentElement), col = n => css.getPropertyValue(n).trim(), t = NCD_TARGETS[k.w];
+  const ds = [{ data: pts.map(p => p.rate == null ? null : +p.rate.toFixed(2)), borderColor: col('--brand'), backgroundColor: col('--brand'), tension: .25, pointRadius: 4, borderWidth: 2,
+    pointBackgroundColor: pts.map(p => { const s = ncdStatus(k.w, p.rate); return s ? col('--' + (s === 'bad' ? 'err' : s)) : col('--brand'); }) }];
+  if (t) ds.push({ data: pts.map(() => t.v), borderColor: col('--muted'), borderDash: [5, 4], pointRadius: 0, borderWidth: 1.5 });
+  Chart.defaults.font.family = 'Prompt';
+  taCharts[k.w] = new Chart(el, { type: 'line', data: { labels: pts.map(p => p.year + (p.approx ? '*' : '')), datasets: ds },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.datasetIndex ? ncdTargetText(k.w) : c.parsed.y + '%' } } },
+      scales: { x: { ticks: { color: col('--muted'), font: { size: 11 } }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: col('--muted'), font: { size: 11 }, callback: v => v + '%', maxTicksLimit: 5 }, grid: { color: col('--border') } } } } });
+}
+function closeTrendAll() { taToken++; $('ncdTrendAll').classList.add('hidden'); }
+function exportTrendAllCSV() {
+  const keys = Object.keys(taData);
+  if (!keys.length) { toast('ยังไม่มีข้อมูลแนวโน้ม'); return; }
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`, y0 = +ncdMeta.year, years = [4, 3, 2, 1, 0].map(d => y0 - d);
+  const rows = NCD_KPIS.filter(k => taData[k.w]).map(k => { const t = NCD_TARGETS[k.w]; return [k.w, k.name, k.table, t ? t.v : '', ...taData[k.w].map(p => p.rate == null ? '' : p.rate.toFixed(2) + (p.approx ? '*' : ''))].map(q).join(','); });
+  const csv = "﻿" + [['ลำดับ', 'ตัวชี้วัด', 'ตาราง', 'เป้าหมาย(%)', ...years].map(q).join(','), ...rows].join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `ncd_trend_${years[0]}-${y0}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function exportDetailCSV() {
+  if (!nd || !nd.matrix.length) return;
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = "﻿" + nd.matrix.map(r => r.map(q).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `ncd_kpi${nd.w}_${['amphoe', 'tambon', 'unit'][nd.level]}_${ncdMeta.year}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function ncdOpen(table) {
+  setView('explorer');
+  $('tableName').value = table;
+  if ([...$('year').options].some(o => o.value === ncdMeta.year)) $('year').value = ncdMeta.year;   // ใช้ปีเดียวกับที่เลือกใน NCD
+  onTableChanged(); updateCodeSnippets(); highlightSelected();
+  $('apiFilterForm').requestSubmit();
+}
+function exportNcdCSV() {
+  if (!Object.keys(ncdResults).length) { toast('ยังไม่มีผลคำนวณ'); return; }
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = NCD_KPIS.map(k => { const r = ncdResults[k.w] || {}; return [k.w, k.name, k.table, r.R ?? '', r.T ?? '', r.rate == null ? '' : r.rate.toFixed(2)].map(q).join(','); });
+  const csv = "﻿" + ['ลำดับ,ตัวชี้วัด,ตาราง,ผลงาน(A),เป้าหมาย(B),ร้อยละ', ...rows].join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `ncd_clinicplus_${ncdMeta.year}_${ncdMeta.province}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 // ================= Misc =================
