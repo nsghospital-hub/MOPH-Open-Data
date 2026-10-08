@@ -209,6 +209,37 @@ td.st-ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}td.st-warn{back
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 
+/* AI assistant */
+#aiFab{position:fixed;right:18px;bottom:18px;z-index:60;height:46px;padding:0 18px;border-radius:99px;border:0;background:linear-gradient(120deg,var(--accent),var(--brand-d));color:#fff;font-weight:500;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;gap:8px}
+#aiFab:hover{filter:brightness(1.1)}
+#aiPanel{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:80;background:var(--surface);border-left:1px solid var(--border);box-shadow:-8px 0 30px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .25s}
+#aiPanel.open{transform:none}
+.ai-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600}
+.ai-h .r{display:flex;gap:6px}
+.ai-set{display:none;padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);gap:8px;flex-direction:column}
+.ai-set.open{display:flex}
+.ai-set .inp{width:100%;height:34px}
+.ai-set.proxy{display:none!important}
+table.heat th,table.heat td{text-align:center;padding:7px 8px;cursor:default;white-space:nowrap}
+table.heat th{cursor:pointer}
+table.heat td.nm,table.heat th.nm{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:500}
+table.heat th.nm{background:var(--surface2);z-index:2;cursor:default}
+table.heat tr.tot td{font-weight:600;border-top:2px solid var(--brand-d)}
+table.heat td.cnt{font-family:'JetBrains Mono',monospace;color:var(--muted)}
+.ai-ctx{padding:10px 16px 0;font-size:12px}
+.ai-quick{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px}
+.ai-log{flex:1;overflow:auto;padding:6px 16px 12px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{padding:10px 12px;border-radius:12px;font-size:13.5px;line-height:1.6;word-break:break-word}
+.ai-msg.u{background:var(--brand-soft);align-self:flex-end;max-width:90%}
+.ai-msg.a{background:var(--surface2)}
+.ai-msg.err{background:var(--errbg);color:var(--err)}
+.ai-msg h4{margin:8px 0 2px;font-size:14px}.ai-msg ul{margin:4px 0;padding-left:20px}.ai-msg p{margin:4px 0}
+.ai-in{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+.ai-in textarea{flex:1;resize:none;height:42px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);outline:none;font:inherit;color:inherit}
+.ai-in textarea:focus{border-color:var(--brand)}
+.ai-note{font-size:11px;color:var(--muted);padding:0 16px 10px}
+@media print{#aiFab,#aiPanel{display:none!important}}
+
 /* toast */
 #toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:100}
 .toast{background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;box-shadow:var(--shadow);font-size:13px;animation:in .25s}
@@ -296,11 +327,29 @@ td.st-ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}td.st-warn{back
       </div>
     </section>
 
+    <section class="card hidden" id="ncdHeat">
+      <div class="card-h">
+        <h2><i class="fa-solid fa-table-cells" style="color:var(--brand-d)"></i> ภาพรวมรายอำเภอ <span class="chip">อำเภอ × ตัวชี้วัด</span></h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="inp" id="heatSort" style="height:30px" onchange="renderHeat()">
+            <option value="code">เรียง: ตามรหัสอำเภอ</option><option value="bad">เรียง: ต่ำกว่าเป้ามากที่สุดก่อน</option><option value="ok">เรียง: ผ่านเป้ามากที่สุดก่อน</option>
+          </select>
+          <button class="btn sm" onclick="aiAskPanel('อธิบายรูปแบบที่เห็นจากตารางอำเภอ × ตัวชี้วัด: อำเภอใดอ่อนหลายข้อพร้อมกัน ตัวชี้วัดใดอ่อนเกือบทุกอำเภอ และอำเภอใดเป็นต้นแบบที่ดี')"><i class="fa-solid fa-wand-magic-sparkles"></i> ให้ AI อธิบาย</button>
+          <button class="btn sm" onclick="exportHeatCSV()"><i class="fa-solid fa-file-csv" style="color:var(--ok)"></i> CSV</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="muted" style="font-size:12px;margin-bottom:10px">สีตามเป้าหมาย: เขียว = ผ่าน · เหลือง = ใกล้เป้า · แดง = ต่ำกว่าเป้า (ข้อ 7 ยิ่งต่ำยิ่งดี, ข้อ 9 ไม่ระบุเป้าหมายจึงไม่ลงสี) · คลิกหัวคอลัมน์เพื่อดูรายละเอียดตัวชี้วัดนั้น</div>
+        <div class="tbl-wrap" style="max-height:none"><table class="heat" id="heatTable"></table></div>
+      </div>
+    </section>
+
     <section class="card hidden" id="ncdDetail">
       <div class="card-h">
         <h2 id="ndTitle" style="font-size:15px"></h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <label class="switch" style="height:30px"><input type="checkbox" id="ndAll" onchange="nd.all=this.checked;renderDetail()"><i></i><span>แสดงทุกคอลัมน์ย่อย</span></label>
+          <button class="btn sm" onclick="aiAskKpi()"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent)"></i> AI วิเคราะห์ข้อนี้</button>
           <button class="btn sm" onclick="exportDetailCSV()"><i class="fa-solid fa-file-csv" style="color:var(--ok)"></i> CSV</button>
           <button class="btn sm" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i> ปิด</button>
         </div>
@@ -466,6 +515,25 @@ td.st-ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}td.st-warn{back
   </section>
   </div><!-- /viewExplorer -->
 </main>
+<button id="aiFab" onclick="aiToggle()"><i class="fa-solid fa-wand-magic-sparkles"></i> AI ผู้ช่วย</button>
+<aside id="aiPanel" aria-label="AI ผู้ช่วย">
+  <div class="ai-h"><span><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent)"></i> AI ผู้ช่วยวิเคราะห์ข้อมูล</span>
+    <span class="r"><button class="btn sm" onclick="$('aiSet').classList.toggle('open')" title="ตั้งค่า"><i class="fa-solid fa-gear"></i></button>
+    <button class="btn sm" onclick="aiClear()" title="ล้างบทสนทนา"><i class="fa-regular fa-trash-can"></i></button>
+    <button class="btn sm" onclick="aiToggle()"><i class="fa-solid fa-xmark"></i></button></span></div>
+  <div class="ai-set" id="aiSet">
+    <div class="field"><label>API Endpoint</label><input class="inp mono" id="aiUrl"></div>
+    <div class="field"><label>API Key (เก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น)</label><input class="inp mono" id="aiKey" type="password" placeholder="sk-..." autocomplete="off"></div>
+    <div class="field"><label>Model</label><input class="inp mono" id="aiModel"></div>
+    <button class="btn sm primary" style="align-self:flex-start" onclick="aiSaveSettings()">บันทึก</button>
+  </div>
+  <div class="ai-ctx"><span class="chip" id="aiCtxLabel"></span></div>
+  <div class="ai-quick" id="aiQuick"></div>
+  <div class="ai-log" id="aiLog"></div>
+  <div class="ai-note">ส่งเฉพาะข้อมูลสรุปที่แสดงบนหน้าจอไปยัง AI ภายในกระทรวง · AI อาจผิดพลาด โปรดตรวจสอบก่อนนำไปใช้</div>
+  <form class="ai-in" onsubmit="aiAsk(event)"><textarea id="aiQ" placeholder="ถามเกี่ยวกับข้อมูลที่แสดงอยู่..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.form.requestSubmit()}"></textarea>
+    <button class="btn primary" id="aiSend" type="submit" style="padding:0 14px"><i class="fa-solid fa-paper-plane"></i></button></form>
+</aside>
 <div id="toasts"></div>
 <section id="printReport" aria-hidden="true"></section>
 
@@ -1022,7 +1090,7 @@ async function loadNcd() {
     if (token !== ncdToken) return;
   }
   $('ncdMsg').textContent = failed ? `เสร็จสิ้น (ไม่สำเร็จ ${failed} ตัวชี้วัด — กด "คำนวณตัวชี้วัด" เพื่อลองใหม่)` : 'คำนวณครบทั้ง 13 ตัวชี้วัดแล้ว';
-  $('ncdProg').classList.add('hidden'); $('btnNcd').disabled = false; ncdRunning = false;
+  $('ncdProg').classList.add('hidden'); $('btnNcd').disabled = false; ncdRunning = false; renderHeat();
   if (!failed) toast('คำนวณตัวชี้วัด NCD Clinic Plus เสร็จแล้ว');
 }
 function ncdProvName() { const o = $('province').querySelector(`option[value="${ncdMeta.province || $('province').value}"]`); return o ? o.textContent.replace(/\s*\(\d+\)$/, '') : ''; }
@@ -1068,7 +1136,43 @@ function renderNcd() {
         <button class="btn sm" onclick="openTrend(${k.w})"><i class="fa-solid fa-chart-line"></i> แนวโน้ม 5 ปี</button>` : ''}
         <button class="btn sm" onclick="ncdOpen('${esc(k.table)}')"><i class="fa-solid fa-table"></i> ตารางดิบ</button></div></div>`;
   }).join('');
+  renderHeat();
 }
+// ---- ภาพรวมรายอำเภอ × ตัวชี้วัด (heatmap) ----
+let heatNamesReq = '';
+function heatData() {
+  const amps = [...new Set(NCD_KPIS.flatMap(k => ((ncdResults[k.w] || {}).amp || []).map(a => a.code)))].sort();
+  const by = Object.fromEntries(NCD_KPIS.map(k => [k.w, Object.fromEntries((((ncdResults[k.w] || {}).amp) || []).map(a => [a.code, a.rate]))]));
+  const rows = amps.map(code => {
+    const c = { ok: 0, warn: 0, bad: 0 };
+    NCD_KPIS.forEach(k => { const s = ncdStatus(k.w, by[k.w][code]); if (s) c[s]++; });
+    return { code, c, by };
+  });
+  return { amps, by, rows };
+}
+function renderHeat() {
+  const has = Object.keys(ncdResults).length && !ncdRunning;
+  $('ncdHeat').classList.toggle('hidden', !has);
+  if (!has) return;
+  const prov = ncdMeta.province;
+  if (!nameStore.dist[prov] && heatNamesReq !== prov) { heatNamesReq = prov; ensureNames(prov).then(renderHeat).catch(() => {}); }
+  const { rows, by } = heatData(), mode = $('heatSort').value;
+  if (mode === 'bad') rows.sort((a, b) => b.c.bad - a.c.bad || a.code.localeCompare(b.code));
+  else if (mode === 'ok') rows.sort((a, b) => b.c.ok - a.c.ok || a.code.localeCompare(b.code));
+  const cell = (k, v) => v == null || isNaN(v) ? '<td class="muted">–</td>' : `<td class="${stClass(k.w, v)}">${v.toFixed(1)}</td>`;
+  $('heatTable').innerHTML = `<thead><tr><th class="nm">อำเภอ</th>${NCD_KPIS.map(k => { const t = NCD_TARGETS[k.w]; return `<th title="${esc(k.name)}" onclick="openDetail(${k.w})">${k.w}<div class="muted" style="font-weight:400;font-size:11px">${t ? (t.lower ? '≤' : '≥') + t.v : '–'}</div></th>`; }).join('')}<th style="cursor:default" title="จำนวนตัวชี้วัดที่ต่ำกว่าเป้า / ที่มีเป้าหมาย">ต่ำกว่าเป้า</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td class="nm">${esc(ndName(0, r.code))}</td>${NCD_KPIS.map(k => cell(k, by[k.w][r.code])).join('')}<td class="cnt">${r.c.bad}/${r.c.ok + r.c.warn + r.c.bad}</td></tr>`).join('') +
+    `<tr class="tot"><td class="nm">รวมทั้งจังหวัด</td>${NCD_KPIS.map(k => cell(k, (ncdResults[k.w] || {}).rate)).join('')}<td></td></tr></tbody>`;
+}
+function exportHeatCSV() {
+  const { rows, by } = heatData(); if (!rows.length) { toast('ยังไม่มีข้อมูลรายอำเภอ'); return; }
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [['รหัสอำเภอ', 'อำเภอ', ...NCD_KPIS.map(k => 'ข้อ ' + k.w), 'ต่ำกว่าเป้า(ข้อ)'].map(q).join(',')];
+  rows.forEach(r => lines.push([r.code, ndName(0, r.code), ...NCD_KPIS.map(k => by[k.w][r.code] == null ? '' : by[k.w][r.code].toFixed(2)), r.c.bad].map(q).join(',')));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
+  a.download = `ncd_heatmap_${ncdMeta.year}_${ncdMeta.province}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function aiAskPanel(q) { if (!$('aiPanel').classList.contains('open')) aiToggle(); aiAsk(null, q); }
 // ---- แผงรายละเอียด: จังหวัด → อำเภอ → ตำบล → หน่วยบริการ ----
 const ND_SKIP = new Set(['id', 'hospcode', 'areacode', 'flag_sent', 'date_com', 'b_year', 'ip', 'yymm', 'date_fz', 'splevel']);
 const fmtN = v => (v == null || isNaN(v)) ? '–' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -1083,7 +1187,7 @@ function openDetail(w) {
   ensureNames(ncdMeta.province).then(renderDetail).catch(() => toast('โหลดชื่ออำเภอ/หน่วยบริการไม่สำเร็จ จะแสดงเป็นรหัสแทน'));
   $('ncdDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-function closeDetail() { nd = null; $('ncdDetail').classList.add('hidden'); }
+function closeDetail() { nd = null; aiFocus = false; $('ncdDetail').classList.add('hidden'); }
 function ndGo(level) { if (!nd) return; nd.level = level; if (level < 2) nd.tam = null; if (level < 1) nd.amp = null; renderDetail(); }
 function ndDrill(key) {
   if (nd.level === 0) { nd.amp = key; nd.level = 1; ensureSubs(key).then(renderDetail).catch(() => {}); }
@@ -1435,6 +1539,196 @@ function showStatus(title, detail, kind = 'info', loading = false) {
   $('statusBox').className = 'banner ' + kind;
   $('statusTitle').textContent = title; $('statusDetail').textContent = detail;
   $('statusSpinner').className = loading ? 'fa-solid fa-circle-notch spin' : `fa-solid fa-${kind === 'ok' ? 'circle-check' : kind === 'err' ? 'triangle-exclamation' : 'circle-info'}`;
+}
+
+// ================= AI ผู้ช่วย (Local AI / OpenAI-compatible) =================
+const AI_DEFAULT = { url: 'https://cpho-ai.moph.go.th:4000/chat/completions', key: '', model: 'google/gemma-4-31B-it' };
+let aiCfg = Object.assign({}, AI_DEFAULT, store.get('moph_ai_cfg', {})), aiHist = [], aiBusy = false;
+const aiIsNcd = () => document.body.dataset.view === 'ncd';
+// ถ้าเปิดผ่าน server.js จะใช้ proxy ฝั่งเซิร์ฟเวอร์ (key ไม่อยู่ในเบราว์เซอร์) ไม่เช่นนั้นเรียก API ตรงด้วย key ที่ผู้ใช้ตั้งเอง
+let aiProxy = false;
+fetch('/api/ai/health').then(r => r.ok ? r.json() : null).then(j => {
+  if (j && j.ok) { aiProxy = true; $('aiSet').classList.add('proxy'); aiCfg.model = j.model; }
+}).catch(() => {});
+const aiEndpoint = () => aiProxy ? '/api/ai/chat' : aiCfg.url;
+const aiHeaders = () => aiProxy ? { 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json', Authorization: 'Bearer ' + aiCfg.key };
+function aiToggle() {
+  const p = $('aiPanel'); p.classList.toggle('open');
+  if (p.classList.contains('open')) {
+    $('aiUrl').value = aiCfg.url; $('aiKey').value = aiCfg.key; $('aiModel').value = aiCfg.model;
+    if (!aiProxy && !aiCfg.key) $('aiSet').classList.add('open');
+    aiRefreshCtx();
+  }
+}
+function aiSaveSettings() {
+  aiCfg = { url: $('aiUrl').value.trim() || AI_DEFAULT.url, key: $('aiKey').value.trim(), model: $('aiModel').value.trim() || AI_DEFAULT.model };
+  store.set('moph_ai_cfg', aiCfg); $('aiSet').classList.remove('open'); toast('บันทึกการตั้งค่า AI แล้ว');
+}
+function aiClear() { aiHist = []; $('aiLog').innerHTML = ''; aiFocus = false; }
+// โฟกัสตัวชี้วัดหนึ่งข้อตามแผงรายละเอียดที่เปิดอยู่ (ระดับอำเภอ/ตำบล/หน่วยบริการ ตามที่ผู้ใช้เจาะลงไป)
+let aiFocus = false;
+function aiFocusText() {
+  const k = NCD_KPIS.find(x => x.w === nd.w), t = NCD_TARGETS[k.w], lvl = ['อำเภอ', 'ตำบล', 'หน่วยบริการ'][nd.level];
+  const where = ['ทั้งจังหวัด', nd.amp && ndName(0, nd.amp), nd.tam && ndName(1, nd.tam)].filter(Boolean).join(' › ');
+  const dataRows = nd.matrix.slice(1, -1), tot = nd.matrix[nd.matrix.length - 1];
+  const line = r => {
+    const [name, B, A, rate] = r, rt = rate === '–' ? null : +rate, st = ncdStatus(k.w, rt);
+    const gap = t && !t.lower && B ? Math.ceil(t.v * B / 100 - A) : null;
+    return `${name}: B=${B} A=${A} ร้อยละ ${rate}${st ? ' · ' + ncdStatusLabel(k.w, st) : ''}${gap > 0 ? ` · ต้องเพิ่มผลงานอีก ${gap} เพื่อถึงเป้า` : ''}`;
+  };
+  const pts = trendCache[`${k.w}|${ncdMeta.province}|${ncdMeta.year}`];
+  return `*** โฟกัสตัวชี้วัดข้อ ${k.w}: ${k.name} ***\nปี ${ncdMeta.year} · ${ncdTargetText(k.w)}${k.note ? ' · ' + k.note : ''}\nระดับที่กำลังดู: ${lvl} ภายใต้ ${where} (${dataRows.length} รายการ)\n${line(tot)}\n` +
+    dataRows.slice(0, 80).map(line).join('\n') + (dataRows.length > 80 ? `\n...(อีก ${dataRows.length - 80} รายการ)` : '') +
+    (pts ? '\nแนวโน้มระดับจังหวัด: ' + pts.map(p => `${p.year} ${p.rate == null ? '–' : p.rate.toFixed(1) + '%'}`).join(', ') : '');
+}
+async function aiAskKpi() {
+  if (!nd) return;
+  aiFocus = true;
+  const k = NCD_KPIS.find(x => x.w === nd.w), key = `${k.w}|${ncdMeta.province}|${ncdMeta.year}`;
+  if (!trendCache[key] && !ncdRunning) { toast('กำลังดึงแนวโน้มย้อนหลังของข้อนี้ให้ AI...'); try { await fetchTrendPts(k, +ncdMeta.year, () => true); } catch (e) {} }
+  try { await ensureNames(ncdMeta.province); } catch (e) {}
+  aiAskPanel(`วิเคราะห์ตัวชี้วัดข้อ ${k.w} ในระดับที่กำลังแสดงอยู่ โดยสรุป (1) ภาพรวมเทียบเป้าหมายและแนวโน้ม (2) หน่วยที่ต่ำสุดและสูงสุด (3) ช่องว่างผลงานที่ต้องเพิ่มเพื่อให้ถึงเป้า หน่วยใดควรเร่งก่อน (4) สาเหตุที่เป็นไปได้ และ (5) ข้อเสนอเชิงปฏิบัติ 3 ข้อ`);
+}
+function aiContext() {
+  if (aiIsNcd()) {
+    if (!Object.keys(ncdResults).length) return null;
+    const lines = NCD_KPIS.map(k => {
+      const r = ncdResults[k.w] || {};
+      if (r.error || r.rate == null) return `${k.w}. ${k.name}: ไม่มีข้อมูล`;
+      const t = NCD_TARGETS[k.w], st = ncdStatus(k.w, r.rate);
+      return `${k.w}. ${k.name}: ${r.rate.toFixed(2)}% (ผลงาน ${r.R} / เป้าหมาย ${r.T}) · ${t ? (t.lower ? '≤' : '≥') + t.v + '%' : 'ไม่ระบุเกณฑ์'} · ${st ? ncdStatusLabel(k.w, st) : '-'}`;
+    });
+    const amp = NCD_KPIS.map(k => { const a = ((ncdResults[k.w] || {}).amp || []).filter(x => x.rate != null); return a.length ? `ข้อ ${k.w}: ` + a.map(x => `${ndName(0, x.code).replace(/^อำเภอ\s*/, '')} ${x.rate.toFixed(1)}%`).join(', ') : ''; }).filter(Boolean);
+    const tr = NCD_KPIS.map(k => { const p = trendCache[`${k.w}|${ncdMeta.province}|${ncdMeta.year}`]; return p ? `ข้อ ${k.w}: ` + p.map(x => `${x.year} ${x.rate == null ? '–' : x.rate.toFixed(1) + '%'}`).join(', ') : ''; }).filter(Boolean);
+    const focus = aiFocus && nd ? aiFocusText() : '';
+    return { label: `NCD Clinic Plus · ปี ${ncdMeta.year} · ${ncdProvName()}${amp.length ? ' · รายอำเภอ' : ''}${tr.length ? ' · แนวโน้ม 5 ปี' : ''}${focus ? ` · โฟกัสข้อ ${nd.w}` : ''}`,
+      text: (focus ? focus + '\n\n--- ภาพรวมตัวชี้วัดทั้งหมด (ใช้อ้างอิง) ---\n' : '') + `ตัวชี้วัด NCD Clinic Plus ปีงบประมาณ ${ncdMeta.year} จังหวัด${ncdProvName()}\n` + lines.join('\n')
+        + (amp.length ? '\n\nร้อยละรายอำเภอ (ปีล่าสุด):\n' + amp.join('\n') : '')
+        + (tr.length ? '\n\nแนวโน้มร้อยละย้อนหลัง 5 ปี:\n' + tr.join('\n') : '') };
+  }
+  if (!rawDataStore.length) return null;
+  const tbl = $('tableName').value, cols = Object.keys(rawDataStore[0]);
+  const cm = Array.isArray(schemaCache[tbl]) ? schemaCache[tbl].filter(c => c.COLUMN_COMMENT).map(c => `${c.COLUMN_NAME}=${c.COLUMN_COMMENT}`).join('; ') : '';
+  let rows = filteredDataStore.slice(0, 40).map(r => cols.map(c => r[c]).join('|')).join('\n');
+  if (rows.length > 7000) rows = rows.slice(0, 7000) + '\n...(ตัดทอน)';
+  return { label: `ตาราง ${tbl} · ${rawDataStore.length.toLocaleString()} แถว`, text: `ตาราง ${tbl} ปี ${$('year').value} จังหวัดรหัส ${$('province').value} ทั้งหมด ${rawDataStore.length} แถว (ตัวอย่าง ${Math.min(40, filteredDataStore.length)} แถวแรก)\nคอลัมน์: ${cols.join('|')}\n${cm ? 'คำอธิบายคอลัมน์: ' + cm + '\n' : ''}${rows}` };
+}
+function aiRefreshCtx() {
+  const c = aiContext();
+  $('aiCtxLabel').textContent = c ? 'ข้อมูลที่ AI เห็น: ' + c.label : 'ยังไม่มีข้อมูล — ดึงข้อมูลหรือคำนวณตัวชี้วัดก่อน';
+  const qs = aiIsNcd()
+    ? [['สรุปภาพรวม', 'สรุปภาพรวมผลงานตัวชี้วัดทั้งหมด'], ['จุดที่ต้องเร่งแก้', 'ตัวชี้วัดใดต่ำกว่าเป้ามากที่สุด และควรเร่งแก้ไขอย่างไร'], ['อำเภอรั้งท้าย', 'แต่ละตัวชี้วัดมีอำเภอใดต่ำสุด และอำเภอใดต่ำกว่าเป้าบ่อยที่สุด'], ['แนวโน้ม 5 ปี', 'วิเคราะห์แนวโน้มย้อนหลัง 5 ปี ตัวชี้วัดใดดีขึ้น ตกลง หรือนิ่ง'], ['ข้อเสนอแนะ', 'เสนอแนวทางพัฒนาเชิงนโยบาย 3-5 ข้อสำหรับผู้บริหารจังหวัด']]
+    : [['อธิบายข้อมูล', 'ตารางนี้คืออะไร แต่ละคอลัมน์สำคัญหมายถึงอะไร'], ['สรุปจุดเด่น', 'สรุปข้อสังเกตและแนวโน้มที่น่าสนใจจากข้อมูลนี้']];
+  $('aiQuick').innerHTML = '';
+  qs.forEach(([t, q]) => { const b = document.createElement('button'); b.className = 'btn sm'; b.textContent = t; b.onclick = () => aiAsk(null, q); $('aiQuick').appendChild(b); });
+  if (!aiIsNcd()) { const b = document.createElement('button'); b.className = 'btn sm'; b.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ดึงข้อมูลด้วยคำสั่ง'; b.onclick = () => { $('aiQ').value = 'ขอข้อมูล '; $('aiQ').focus(); }; $('aiQuick').appendChild(b); }
+}
+function aiMd(t) {
+  let h = esc(t).replace(/\$\\(?:right|to)arrow\$/g, '→').replace(/\$\\leftarrow\$/g, '←').replace(/\$\\(?:ge|geq)\$/g, '≥').replace(/\$\\(?:le|leq)\$/g, '≤').replace(/^#{1,3} (.+)$/gm, '<h4>$1</h4>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  h = h.replace(/(?:^[-*] .+(?:\n|$))+/gm, m => '<ul>' + m.trim().split('\n').map(l => '<li>' + l.replace(/^[-*] /, '') + '</li>').join('') + '</ul>');
+  return h.split(/\n{2,}/).map(p => /^<(h4|ul)/.test(p) ? p : '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+}
+const AI_TREND_RE = /แนวโน้ม|ย้อนหลัง|ปีก่อน|ปีที่ผ่านมา|5 ปี|ห้าปี|ดีขึ้น|ตกลง/;
+const AI_FETCH_RE = /(ขอ|ดึง|เปิด|โหลด|ค้นหา).{0,8}(ข้อมูล|ตาราง|รายงาน)/;
+// ดึงอัตราย้อนหลัง 5 ปีของทุกตัวชี้วัดมาไว้ใน trendCache (ใช้ร่วมกับหน้าแนวโน้ม) แล้วให้ AI อ่าน
+async function aiEnsureTrends(out) {
+  if (ncdRunning) throw new Error('ระบบยังคำนวณตัวชี้วัดไม่เสร็จ รอสักครู่แล้วลองใหม่');
+  const y0 = +ncdMeta.year;
+  for (const [i, k] of NCD_KPIS.entries()) {
+    if (trendCache[`${k.w}|${ncdMeta.province}|${y0}`]) continue;
+    out.innerHTML = `<i class="fa-solid fa-circle-notch spin"></i> กำลังดึงข้อมูลย้อนหลัง ข้อ ${k.w}/${NCD_KPIS.length} (ครั้งแรกอาจใช้เวลาหลายนาที)...`;
+    await fetchTrendPts(k, y0, () => true);
+  }
+}
+async function aiCall(messages, max = 400) {
+  const res = await fetch(aiEndpoint(), { method: 'POST', headers: aiHeaders(),
+    body: JSON.stringify({ model: aiCfg.model, messages, temperature: 0, max_tokens: max }) });
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+  return (await res.json()).choices?.[0]?.message?.content || '';
+}
+// จับคู่ข้อความกับชื่อรายงานด้วย bigram (ภาษาไทยไม่มีช่องว่างคั่นคำ) แล้วเลือกผู้สมัคร 40 อันดับแรกให้ AI ตัดสิน
+function aiCandidates(q) {
+  const clean = q.replace(/ขอ|ดึง|เปิด|โหลด|ค้นหา|ข้อมูล|ตาราง|รายงาน|หน่อย|ด้วย|ปีงบประมาณ|ปี|พ\.ศ\.|จังหวัด|ชัยภูมิ|\d+|[\s\-_()\/,.]+/g, '').toLowerCase();
+  const bg = []; for (let i = 0; i < clean.length - 1; i++) bg.push(clean.substr(i, 2));
+  if (!bg.length) return [];
+  const seen = new Set();
+  return loadedReports().filter(r => !isClosed(r) && !seen.has(r.source_table) && seen.add(r.source_table)).map(r => {
+    const t = (r.source_table + r.report_name + r.main_report_name).toLowerCase();
+    return { r, s: bg.filter(b => t.includes(b)).length / bg.length };
+  }).filter(x => x.s > 0.3).sort((a, b) => b.s - a.s).slice(0, 40).map(x => x.r);
+}
+async function aiFetchByCommand(q) {
+  const out = aiAdd('a', '<i class="fa-solid fa-circle-notch spin"></i> กำลังค้นหารายงานที่ตรงกับคำสั่ง...');
+  aiBusy = true; $('aiSend').disabled = true;
+  try {
+    if (!loadedReports().length) throw new Error('รายการรายงานยังโหลดไม่เสร็จ รอสักครู่แล้วลองใหม่');
+    const cand = aiCandidates(q);
+    if (!cand.length) throw new Error('ไม่พบรายงานที่ใกล้เคียงกับคำที่พิมพ์ ลองระบุชื่อรายงานหรือชื่อโรคให้ชัดขึ้น');
+    const list = cand.map(r => `${r.source_table} | ${r.report_name.replace(/\s*\(ปิดรายงาน\).*/, '')}`).join('\n');
+    const txt = await aiCall([
+      { role: 'system', content: 'เลือกตารางรายงานที่ตรงกับคำสั่งผู้ใช้มากที่สุดจากรายการที่ให้เท่านั้น ตอบเป็น JSON บรรทัดเดียวเท่านั้น รูปแบบ {"table":"ชื่อตาราง หรือ null ถ้าไม่มีที่ตรง","year":ปี พ.ศ. 4 หลัก หรือ null ถ้าไม่ได้ระบุ,"reason":"เหตุผลสั้นๆ"}\n\nรายการ (ตาราง | ชื่อรายงาน):\n' + list },
+      { role: 'user', content: q }], 200);
+    let j; try { j = JSON.parse((txt.match(/\{[\s\S]*\}/) || [''])[0]); } catch (e) { throw new Error('AI ตอบรูปแบบที่อ่านไม่ได้ ลองพิมพ์คำสั่งใหม่'); }
+    const pick = cand.find(r => r.source_table === j.table);
+    if (!pick) throw new Error('AI ไม่พบรายงานที่ตรงกับคำสั่ง' + (j.reason ? ' (' + j.reason + ')' : '') + ' — ลองระบุชื่อให้ชัดขึ้น หรือค้นหาจากรายการด้านบน');
+    const y = String(j.year || (q.match(/25\d\d/) || [])[0] || '');
+    setView('explorer'); pickReport(pick.source_table);
+    if (y && [...$('year').options].some(o => o.value === y)) $('year').value = y;
+    updateCodeSnippets();
+    out.innerHTML = `<i class="fa-solid fa-circle-notch spin"></i> เลือก <b>${esc(pick.source_table)}</b> ปี ${esc($('year').value)} — กำลังดึงข้อมูล...`;
+    await handleFormSubmit({ preventDefault() {} });
+    out.innerHTML = `<p>เลือกตาราง <b>${esc(pick.source_table)}</b> (${esc(pick.report_name.replace(/\s*\(ปิดรายงาน\).*/, ''))}) ปี ${esc($('year').value)}</p><p>${rawDataStore.length ? `ดึงข้อมูลได้ ${rawDataStore.length.toLocaleString()} แถว — ถาม AI เกี่ยวกับข้อมูลนี้ต่อได้เลย` : 'ไม่พบข้อมูลของปีนี้ ลองเปลี่ยนปีแล้วกด "ดึงข้อมูล"'}</p>`;
+    aiRefreshCtx();
+  } catch (e) { out.className = 'ai-msg err'; out.textContent = e.message; }
+  aiBusy = false; $('aiSend').disabled = false;
+}
+function aiAdd(cls, html) { const d = document.createElement('div'); d.className = 'ai-msg ' + cls; d.innerHTML = html; $('aiLog').appendChild(d); d.scrollIntoView({ block: 'end' }); return d; }
+async function aiAsk(ev, preset) {
+  if (ev) ev.preventDefault();
+  const q = (preset || $('aiQ').value).trim();
+  if (!q || aiBusy) return;
+  if (!aiProxy && !aiCfg.key) { $('aiSet').classList.add('open'); toast('กรุณาใส่ API Key ก่อน'); return; }
+  if (AI_FETCH_RE.test(q) && !aiIsNcd()) { $('aiQ').value = ''; aiAdd('u', esc(q)); return aiFetchByCommand(q); }
+  if (!aiContext()) { toast('ยังไม่มีข้อมูลให้ AI วิเคราะห์'); return; }
+  $('aiQ').value = ''; aiAdd('u', esc(q));
+  const out = aiAdd('a', '<i class="fa-solid fa-circle-notch spin"></i> กำลังคิด...');
+  aiBusy = true; $('aiSend').disabled = true;
+  if (aiIsNcd()) {
+    try { await ensureNames(ncdMeta.province); } catch (e) {}
+    if (AI_TREND_RE.test(q) && !(aiFocus && nd)) {
+      try { await aiEnsureTrends(out); }
+      catch (e) { out.className = 'ai-msg err'; out.textContent = 'ดึงข้อมูลย้อนหลังไม่สำเร็จ: ' + e.message; aiBusy = false; $('aiSend').disabled = false; return; }
+      aiRefreshCtx(); out.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i> กำลังคิด...';
+    }
+  }
+  const ctx = aiContext();
+  const messages = [
+    { role: 'system', content: 'คุณเป็นผู้ช่วยนักวิเคราะห์ข้อมูลสาธารณสุขของสำนักงานสาธารณสุขจังหวัด ตอบเป็นภาษาไทยกระชับ ใช้เฉพาะข้อมูลที่ให้มาเท่านั้น ห้ามแต่งตัวเลข หากข้อมูลไม่พอให้บอกตรงๆ ห้ามใช้สัญลักษณ์ LaTeX ให้เขียน ≥ ≤ → ตรงๆ\n\n--- ข้อมูลปัจจุบัน ---\n' + ctx.text },
+    ...aiHist.slice(-6), { role: 'user', content: q }
+  ];
+  let full = '';
+  try {
+    const res = await fetch(aiEndpoint(), { method: 'POST', headers: aiHeaders(),
+      body: JSON.stringify({ model: aiCfg.model, messages, stream: true, temperature: 0.3, max_tokens: 1500 }) });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+    const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+    for (;;) {
+      const { done, value } = await rd.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const l of lines) {
+        if (!l.startsWith('data:')) continue;
+        const d = l.slice(5).trim(); if (!d || d === '[DONE]') continue;
+        try { full += JSON.parse(d).choices?.[0]?.delta?.content || ''; out.innerHTML = aiMd(full); out.scrollIntoView({ block: 'end' }); } catch (e) {}
+      }
+    }
+    if (!full) throw new Error('AI ไม่ตอบกลับ');
+    aiHist.push({ role: 'user', content: q }, { role: 'assistant', content: full });
+  } catch (e) {
+    out.className = 'ai-msg err';
+    out.textContent = 'เรียก AI ไม่สำเร็จ: ' + e.message + (e.name === 'TypeError' ? ' (ตรวจสอบว่าเครื่องเชื่อมต่อเครือข่ายที่เข้าถึง cpho-ai.moph.go.th ได้)' : '');
+  }
+  aiBusy = false; $('aiSend').disabled = false;
 }
 </script>
 </body>
