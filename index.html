@@ -182,6 +182,15 @@ td.st-ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}td.st-warn{back
 .clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #taGrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 
+/* หน้าต่าง Data Exchange */
+.btn.ex-yes{border-color:var(--ok);color:var(--ok)}
+.modal{position:fixed;inset:0;background:rgba(8,20,22,.55);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:4vh 14px;overflow:auto}
+.modal-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:100%;max-width:1100px}
+.modal-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-b{padding:16px 20px 20px}
+.notice{display:flex;gap:10px;padding:10px 14px;border-radius:12px;background:var(--warnbg);color:var(--warn);font-size:12.5px;line-height:1.5;margin-bottom:12px}
+.notice i{margin-top:3px}
+
 /* รายงานสำหรับพิมพ์ (A4 แนวตั้ง 1 หน้า) — ใช้สีตายตัวแบบโหมดสว่างเสมอ */
 #printReport{display:none}
 #printReport{font-family:'Prompt',sans-serif;color:#111;background:#fff;font-size:8.6pt;line-height:1.35}
@@ -418,7 +427,9 @@ table.heat td.cnt{font-family:'JetBrains Mono',monospace;color:var(--muted)}
         </div>
         <select class="inp" id="catSub" onchange="onCatSubChange()" style="flex:0 1 320px"><option value="">ทุกหมวดหมู่ย่อย</option></select>
         <label class="switch" style="height:38px"><input type="checkbox" id="catHideClosed" onchange="renderCatalog(true)"><i></i><span>ซ่อนรายงานที่ปิด</span></label>
+        <label class="switch" style="height:38px"><input type="checkbox" id="catHasEx" onchange="onHasEx()"><i></i><span>เฉพาะที่มี Data Exchange</span></label>
       </div>
+      <div class="muted" style="font-size:12px;margin-bottom:6px" id="catExInfo"></div>
       <div class="pills" id="catPills"></div>
       <div class="recent hidden" id="recentBox"><span class="muted"><i class="fa-regular fa-clock"></i> ใช้ล่าสุด:</span><span id="recentList"></span></div>
       <div class="grid" id="catGrid"></div>
@@ -534,6 +545,15 @@ table.heat td.cnt{font-family:'JetBrains Mono',monospace;color:var(--muted)}
   <form class="ai-in" onsubmit="aiAsk(event)"><textarea id="aiQ" placeholder="ถามเกี่ยวกับข้อมูลที่แสดงอยู่..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.form.requestSubmit()}"></textarea>
     <button class="btn primary" id="aiSend" type="submit" style="padding:0 14px"><i class="fa-solid fa-paper-plane"></i></button></form>
 </aside>
+<div id="exModal" class="modal hidden" onclick="if(event.target===this)closeExchange()" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+  <div class="modal-box">
+    <div class="modal-h">
+      <div><div class="muted" style="font-size:12px"><i class="fa-solid fa-right-left"></i> HDC Data Exchange</div><h3 id="exTitle" style="margin:2px 0 0;font-size:15px;line-height:1.4"></h3></div>
+      <button class="btn sm" onclick="closeExchange()" aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="exBody" class="modal-b"></div>
+  </div>
+</div>
 <div id="toasts"></div>
 <section id="printReport" aria-hidden="true"></section>
 
@@ -574,6 +594,7 @@ const CAT_CACHE_KEY = "moph_catalog_v1";
 const PROVINCES = "10 กรุงเทพมหานคร,11 สมุทรปราการ,12 นนทบุรี,13 ปทุมธานี,14 พระนครศรีอยุธยา,15 อ่างทอง,16 ลพบุรี,17 สิงห์บุรี,18 ชัยนาท,19 สระบุรี,20 ชลบุรี,21 ระยอง,22 จันทบุรี,23 ตราด,24 ฉะเชิงเทรา,25 ปราจีนบุรี,26 นครนายก,27 สระแก้ว,30 นครราชสีมา,31 บุรีรัมย์,32 สุรินทร์,33 ศรีสะเกษ,34 อุบลราชธานี,35 ยโสธร,36 ชัยภูมิ,37 อำนาจเจริญ,38 บึงกาฬ,39 หนองบัวลำภู,40 ขอนแก่น,41 อุดรธานี,42 เลย,43 หนองคาย,44 มหาสารคาม,45 ร้อยเอ็ด,46 กาฬสินธุ์,47 สกลนคร,48 นครพนม,49 มุกดาหาร,50 เชียงใหม่,51 ลำพูน,52 ลำปาง,53 อุตรดิตถ์,54 แพร่,55 น่าน,56 พะเยา,57 เชียงราย,58 แม่ฮ่องสอน,60 นครสวรรค์,61 อุทัยธานี,62 กำแพงเพชร,63 ตาก,64 สุโขทัย,65 พิษณุโลก,66 พิจิตร,67 เพชรบูรณ์,70 ราชบุรี,71 กาญจนบุรี,72 สุพรรณบุรี,73 นครปฐม,74 สมุทรสาคร,75 สมุทรสงคราม,76 เพชรบุรี,77 ประจวบคีรีขันธ์,80 นครศรีธรรมราช,81 กระบี่,82 พังงา,83 ภูเก็ต,84 สุราษฎร์ธานี,85 ระนอง,86 ชุมพร,90 สงขลา,91 สตูล,92 ตรัง,93 พัทลุง,94 ปัตตานี,95 ยะลา,96 นราธิวาส".split(",");
 let catCategories = [], catReports = {}, catShown = 0, activeMain = '', favs = store.get('moph_favs', []), recents = store.get('moph_recent', []);
 const CAT_PAGE = 60;
+let catLoading = true;   // true ระหว่างโหลดรายการรายงานเบื้องหลัง
 
 async function catFetch(path) {
   for (let t = 0; t < 6; t++) {
@@ -613,7 +634,7 @@ async function initCatalog() {
   const cache = store.get(CAT_CACHE_KEY, null);
   if (cache) { catCategories = cache.categories; catReports = cache.reports; refreshCatUI(); renderCatalog(true); }
   try { catCategories = await catFetch("categories"); } catch (e) {
-    $('catMsg').textContent = catCategories.length ? "ออฟไลน์ — ใช้ข้อมูลที่แคชไว้" : "โหลดรายการไม่ได้: " + e.message; return;
+    $('catMsg').textContent = catCategories.length ? "ออฟไลน์ — ใช้ข้อมูลที่แคชไว้" : "โหลดรายการไม่ได้: " + e.message; catLoading = false; return;
   }
   refreshCatUI(); renderCatalog(true);
   // โหลดรายงานที่เหลือเบื้องหลัง
@@ -624,6 +645,7 @@ async function initCatalog() {
     await sleep(350);
   }
   $('catProg').classList.add('hidden');
+  catLoading = false;
 }
 async function onCatSubChange() {
   const id = $('catSub').value;
@@ -631,10 +653,10 @@ async function onCatSubChange() {
   renderCatalog(true);
 }
 function filteredCatalog() {
-  const q = $('catSearch').value.trim().toLowerCase(), sub = $('catSub').value, hide = $('catHideClosed').checked;
+  const q = $('catSearch').value.trim().toLowerCase(), sub = $('catSub').value, hide = $('catHideClosed').checked, hasEx = $('catHasEx').checked;
   return loadedReports().filter(r =>
     (!activeMain || (activeMain === '__fav' ? favs.includes(r.source_table) : r.main_report_name === activeMain)) &&
-    (!sub || r.cat_id === sub) && (!hide || !isClosed(r)) &&
+    (!sub || r.cat_id === sub) && (!hide || !isClosed(r)) && (!hasEx || exHas[r.opendata_id] === 1) &&
     (!q || (r.source_table + ' ' + r.report_name).toLowerCase().includes(q)));
 }
 function renderCatalog(reset, keep) {
@@ -650,6 +672,7 @@ function renderCatalog(reset, keep) {
       <div class="name">${esc(r.report_name.replace(/\s*\(ปิดรายงาน\).*/, ''))}</div>
       ${isClosed(r) ? '<span class="closed">ปิดรายงาน</span>' : ''}
       <div class="tags"><b>${esc(r.main_report_name)}</b> · ${esc((r.category_name || '').trim())}</div>
+      <button type="button" class="btn sm ${exHas[r.opendata_id] === 1 ? 'ex-yes' : ''}" style="align-self:flex-start" data-id="${esc(r.opendata_id)}" data-n="${esc(r.report_name)}" data-t="${esc(r.source_table)}" onclick="event.stopPropagation();openExchange(this.dataset.id,this.dataset.n,this.dataset.t)" title="${exHas[r.opendata_id] === 1 ? 'รายงานนี้มี Data Exchange ที่ HDC' : exHas[r.opendata_id] === 0 ? 'ไม่มี Data Exchange ที่ HDC (ดูข้อมูลสรุปได้)' : 'ดูข้อมูลสรุปและดาวน์โหลด'}"><i class="fa-solid fa-right-left"></i> Data Exchange</button>
     </div>`).join('')
     : `<div class="empty" style="grid-column:1/-1"><i class="fa-regular fa-folder-open"></i>ไม่พบรายงานที่ตรงเงื่อนไข</div>`;
   $('btnCatMore').classList.toggle('hidden', catShown >= list.length);
@@ -1134,7 +1157,8 @@ function renderNcd() {
       <div class="kpi-f"><span class="chip mono">${esc(k.table)}</span>
         ${r && r.amp && r.amp.length ? `<button class="btn sm" onclick="openDetail(${k.w})"><i class="fa-solid fa-sitemap"></i> รายอำเภอ</button>
         <button class="btn sm" onclick="openTrend(${k.w})"><i class="fa-solid fa-chart-line"></i> แนวโน้ม 5 ปี</button>` : ''}
-        <button class="btn sm" onclick="ncdOpen('${esc(k.table)}')"><i class="fa-solid fa-table"></i> ตารางดิบ</button></div></div>`;
+        <button class="btn sm" onclick="ncdOpen('${esc(k.table)}')"><i class="fa-solid fa-table"></i> ตารางดิบ</button>
+        <button class="btn sm" data-id="${k.code}" data-n="${esc(k.name)}" data-t="${esc(k.table)}" onclick="openExchange(this.dataset.id,this.dataset.n,this.dataset.t)"><i class="fa-solid fa-right-left"></i> Data Exchange</button></div></div>`;
   }).join('');
   renderHeat();
 }
@@ -1383,6 +1407,176 @@ function renderTrend(k, pts) {
   }).join('');
 }
 function closeTrend() { ntToken++; $('ncdTrend').classList.add('hidden'); }
+
+// ---- HDC Data Exchange ต่อรายงาน ----
+// หน้าต่างนี้แสดง "ข้อมูลสรุป" (สาธารณะ จาก Open Data) พร้อมตัวกรองและดาวน์โหลด CSV / Excel / JSON
+// ส่วนข้อมูลรายบุคคลของ Data Exchange ต้องยืนยันตัวตน (ThaiD / MyMOPH) และมีสิทธิ์ที่ HDC เอง แอปนี้ไม่ดึงและไม่เก็บ
+const HDC_SITE = "https://hdc.moph.go.th/cpm/public";
+let exHas = store.get('moph_ex_has_v1', {}) || {};   // opendata_id -> 1 (มี Data Exchange) / 0 (ไม่มี)
+let exv = null, exDataCache = {};
+async function exFetch(id) {
+  for (let t = 0; t < 4; t++) {
+    try {
+      const res = await fetch(`${HDC_API}/lookup/data_exchange/${encodeURIComponent(id)}`);
+      if (res.status !== 429) { const j = JSON.parse(await res.text()); if (j.ok) return j.rows || null; }
+    } catch (e) {}
+    await sleep(1200 * (t + 1));
+  }
+  throw new Error('ดึงข้อมูลไม่สำเร็จ');
+}
+const exHasRows = rows => !!(rows && rows.json_format && rows.json_format.length);
+const saveExHas = () => store.set('moph_ex_has_v1', exHas);
+function saveBlob(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function loadXLSX() {
+  return window.XLSX ? Promise.resolve() : new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = res; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+async function openExchange(id, name, table) {
+  const prov = $('province').value;
+  const v = exv = { id, name, table, prov, year: null, all: [], view: [], cols: [], page: 1, size: 100, amp: '', q: '' };
+  $('exModal').classList.remove('hidden');
+  $('exTitle').textContent = name || table || id;
+  $('exBody').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <span class="chip" id="exHasChip"><i class="fa-solid fa-circle-notch spin"></i> ตรวจสถานะ Data Exchange...</span>
+      <span class="chip mono">${esc(table || '')}</span>
+      <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn sm" style="background:var(--brand-d);color:#fff;border-color:var(--brand-d)" href="${HDC_SITE}/data-exchange/${encodeURIComponent(id)}" target="_blank" rel="noopener"><i class="fa-solid fa-right-to-bracket"></i> เปิดที่ HDC Data Exchange (ต้องล็อกอิน)</a>
+        <a class="btn sm" href="${HDC_SITE}/standard-report-detail/${encodeURIComponent(id)}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> หน้ารายงานที่ HDC</a>
+      </span></div>
+    <div class="notice"><i class="fa-solid fa-user-shield"></i><div>ตารางด้านล่างเป็น<b>ข้อมูลสรุปสาธารณะ</b> (ระดับหน่วยบริการ/พื้นที่) ดาวน์โหลดได้เลย ส่วนข้อมูล<b>รายบุคคล</b>ของ Data Exchange ต้องยืนยันตัวตนด้วย ThaiD หรือ MyMOPH และมีสิทธิ์ที่ HDC ผ่านปุ่มสีเขียวด้านบน</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
+      <div class="field"><label>ปีงบประมาณ</label><select class="inp" id="exYear" style="width:110px;height:34px" onchange="exSetYear(this.value)"></select></div>
+      <div class="field"><label>อำเภอ</label><select class="inp" id="exAmp" style="height:34px;max-width:200px" onchange="exv.amp=this.value;exApply()"><option value="">ทั้งหมด</option></select></div>
+      <div class="field" style="flex:1 1 160px"><label>ค้นหา</label><input class="inp" id="exQ" style="height:34px" placeholder="ค้นหาในตาราง" oninput="exv.q=this.value;exApply()"></div>
+      <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">
+        <button class="btn sm" style="background:#fbbf24;border-color:#fbbf24;color:#1a1a1a" onclick="exDownload('csv')"><i class="fa-solid fa-file-csv"></i> csv</button>
+        <button class="btn sm" style="background:#059669;border-color:#059669;color:#fff" onclick="exDownload('xlsx')"><i class="fa-solid fa-file-excel"></i> excel</button>
+        <button class="btn sm" style="background:#1f2937;border-color:#1f2937;color:#fff" onclick="exDownload('json')"><i class="fa-solid fa-file-code"></i> json</button>
+      </div></div>
+    <div class="muted" style="font-size:12px;margin-bottom:6px" id="exInfo"></div>
+    <div class="tbl-wrap" style="max-height:46vh"><table><thead id="exHead"></thead><tbody id="exRows"></tbody></table></div>
+    <div class="pager">
+      <div id="exPageInfo"></div>
+      <div class="r">
+        <select class="inp" style="height:30px" onchange="exv.size=+this.value;exv.page=1;exApply()"><option value="50">50 / หน้า</option><option value="100" selected>100 / หน้า</option><option value="500">500 / หน้า</option></select>
+        <button class="btn sm" id="exPrev" onclick="exPage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="exPageNo">1 / 1</span>
+        <button class="btn sm" id="exNext" onclick="exPage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+      </div></div>`;
+  // 1) สถานะ Data Exchange ของรายงานนี้
+  exFetch(id).then(rows => {
+    if (exv !== v) return;
+    const has = exHasRows(rows); exHas[id] = has ? 1 : 0; saveExHas();
+    $('exHasChip').className = 'chip ' + (has ? 'st-chip-ok' : 'st-chip-warn');
+    $('exHasChip').innerHTML = has ? '<i class="fa-solid fa-circle-check"></i> รายงานนี้มี Data Exchange ที่ HDC' : '<i class="fa-solid fa-circle-minus"></i> รายงานนี้ไม่มี Data Exchange ที่ HDC';
+  }).catch(() => { if (exv === v) $('exHasChip').innerHTML = 'ตรวจสถานะไม่สำเร็จ'; });
+  if (!table) { $('exInfo').textContent = 'ไม่ทราบชื่อตารางของรายงานนี้ จึงแสดงข้อมูลสรุปไม่ได้'; return; }
+  // 2) ปีที่มีข้อมูล + 3) ชื่อพื้นที่ + 4) คำอธิบายคอลัมน์
+  ensureNames(prov).then(() => { if (exv === v) exFillAmp(); }).catch(() => {});
+  if (!schemaCache[table]) siteGet('report_schema/' + encodeURIComponent(table)).then(s => { schemaCache[table] = s; if (exv === v) exApply(); }).catch(() => {});
+  let years = [];
+  try { years = ((yearCache[table] = yearCache[table] || await siteGet('report_year/' + encodeURIComponent(table))) || []).map(y => String(y.b_year)).filter(Boolean); } catch (e) {}
+  if (exv !== v) return;
+  if (!years.length) years = NCD_YEARS.map(String);
+  $('exYear').innerHTML = years.map(y => `<option>${y}</option>`).join('');
+  v.year = years.includes($('year').value) ? $('year').value : years[0];
+  $('exYear').value = v.year;
+  exLoad();
+}
+function exSetYear(y) { exv.year = y; exv.amp = ''; exLoad(); }
+async function exLoad() {
+  const v = exv, yr = v.year, key = `${v.table}|${yr}|${v.prov}`;
+  $('exInfo').textContent = 'กำลังโหลดข้อมูล...'; $('exRows').innerHTML = ''; $('exHead').innerHTML = '';
+  try { if (!exDataCache[key]) exDataCache[key] = await fetchAllRows(v.table, yr, v.prov); }
+  catch (e) { if (exv === v && v.year === yr) $('exInfo').textContent = 'ดึงข้อมูลไม่สำเร็จ: ' + e.message; return; }
+  if (exv !== v || v.year !== yr) return;
+  let rows = exDataCache[key];
+  const live = rows.filter(x => !x.date_fz);   // ใช้ข้อมูลปัจจุบัน ไม่รวมแถว freeze ตกค้าง
+  if (live.length) rows = live;
+  v.all = rows; v.cols = rows.length ? Object.keys(rows[0]) : [];
+  exFillAmp(); v.page = 1; exApply();
+}
+function exFillAmp() {
+  const v = exv; if (!v || !$('exAmp')) return;
+  const codes = [...new Set(v.all.map(x => String(x.areacode || '').slice(0, 4)).filter(Boolean))].sort();
+  const cur = v.amp;
+  $('exAmp').innerHTML = '<option value="">ทั้งหมด</option>' + codes.map(c => `<option value="${esc(c)}">${esc(((nameStore.dist[v.prov] || {})[c]) || c)}</option>`).join('');
+  $('exAmp').value = codes.includes(cur) ? cur : ''; v.amp = $('exAmp').value;
+}
+function exApply() {
+  const v = exv; if (!v || !v.table) return;
+  const q = v.q.trim().toLowerCase();
+  v.view = v.all.filter(x => (!v.amp || String(x.areacode || '').startsWith(v.amp)) && (!q || Object.values(x).some(c => c != null && String(c).toLowerCase().includes(q))));
+  const pages = Math.max(1, Math.ceil(v.view.length / v.size)); v.page = Math.min(Math.max(1, v.page), pages);
+  const s = (v.page - 1) * v.size, e = Math.min(s + v.size, v.view.length);
+  const comments = Object.fromEntries((Array.isArray(schemaCache[v.table]) ? schemaCache[v.table] : []).map(c => [c.COLUMN_NAME, c.COLUMN_COMMENT]));
+  $('exHead').innerHTML = '<tr>' + v.cols.map(c => `<th style="cursor:default" title="${esc(comments[c] || c)}">${esc(c)}${comments[c] ? `<div class="muted" style="font-weight:400;font-size:10px;white-space:normal;min-width:90px">${esc(comments[c])}</div>` : ''}</th>`).join('') + '</tr>';
+  $('exRows').innerHTML = v.view.length ? v.view.slice(s, e).map(r => `<tr>${v.cols.map(c => { const x = r[c]; return `<td class="${isNum(x) ? 'num' : ''}" title="${esc(x)}">${x == null ? '<span class="muted">–</span>' : esc(x)}</td>`; }).join('')}</tr>`).join('')
+    : `<tr><td colspan="${v.cols.length || 1}" style="max-width:none"><div class="empty"><i class="fa-regular fa-folder-open"></i>${v.all.length ? 'ไม่พบข้อมูลที่ตรงกับตัวกรอง' : 'ไม่พบข้อมูลของปีนี้'}</div></td></tr>`;
+  $('exInfo').textContent = `ปี ${v.year} · ${v.view.length.toLocaleString()} จาก ${v.all.length.toLocaleString()} แถว · ดาวน์โหลดตามตัวกรองที่เลือก`;
+  $('exPageInfo').textContent = v.view.length ? `แสดง ${(s + 1).toLocaleString()}–${e.toLocaleString()}` : '';
+  $('exPageNo').textContent = `${v.page} / ${pages}`;
+  $('exPrev').disabled = v.page === 1; $('exNext').disabled = v.page === pages;
+}
+function exPage(d) { exv.page += d; exApply(); }
+async function exDownload(type) {
+  const v = exv;
+  if (!v || !v.view.length) { toast('ไม่มีข้อมูลให้ดาวน์โหลด'); return; }
+  const base = `${v.table}_${v.year}_${v.prov}${v.amp ? '_' + v.amp : ''}`;
+  if (type === 'json') saveBlob(new Blob([JSON.stringify(v.view, null, 2)], { type: 'application/json' }), base + '.json');
+  else if (type === 'xlsx') {
+    try {
+      await loadXLSX();
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(v.view), 'data'); XLSX.writeFile(wb, base + '.xlsx');
+    } catch (e) { toast('โหลดตัวสร้างไฟล์ Excel ไม่ได้ จึงดาวน์โหลดเป็น CSV แทน'); return exDownload('csv'); }
+  } else {
+    const q = x => `"${String(x ?? '').replace(/"/g, '""')}"`;
+    saveBlob(new Blob(["﻿" + [v.cols.map(q).join(','), ...v.view.map(r => v.cols.map(c => q(r[c])).join(','))].join('\n')], { type: 'text/csv;charset=utf-8' }), base + '.csv');
+  }
+  toast(`ดาวน์โหลด ${type.toUpperCase()} แล้ว (${v.view.length.toLocaleString()} แถว)`);
+}
+function closeExchange() { exv = null; $('exModal').classList.add('hidden'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('exModal').classList.contains('hidden')) closeExchange(); });
+
+// ---- ตัวกรอง "เฉพาะรายงานที่มี Data Exchange": ตรวจเบื้องหลังทีละรายงาน (3 คำขอพร้อมกัน) แล้วแคชไว้ ----
+let exScanning = false, exScanToken = 0, exFail = new Set();
+function updateExInfo() {
+  const all = [...new Set(loadedReports().map(r => r.opendata_id).filter(Boolean))];
+  const done = all.filter(id => id in exHas).length, yes = all.filter(id => exHas[id] === 1).length;
+  $('catExInfo').textContent = $('catHasEx').checked
+    ? `ตรวจ Data Exchange แล้ว ${done.toLocaleString()}/${all.length.toLocaleString()} รายงาน · พบที่มี ${yes.toLocaleString()} รายงาน` + (exScanning ? ' · กำลังตรวจต่อ รายการจะเพิ่มขึ้นเรื่อยๆ' : '') : '';
+}
+function onHasEx() { renderCatalog(true); if ($('catHasEx').checked) scanExchange(); else { exScanToken++; updateExInfo(); } }
+async function scanExchange() {
+  if (exScanning) return;
+  exScanning = true; const token = ++exScanToken; let tick = 0;
+  const on = () => token === exScanToken && $('catHasEx').checked;
+  try {
+    while (on()) {
+      const ids = [...new Set(loadedReports().map(r => r.opendata_id).filter(id => id && !(id in exHas) && !exFail.has(id)))];
+      if (!ids.length) { if (catLoading) { await sleep(1500); continue; } break; }
+      let i = 0;
+      const worker = async () => {
+        while (i < ids.length && on()) {
+          const id = ids[i++];
+          try { exHas[id] = exHasRows(await exFetch(id)) ? 1 : 0; } catch (e) { exFail.add(id); }
+          if (++tick % 20 === 0) { saveExHas(); updateExInfo(); renderCatalog(false, true); }
+          await sleep(150);
+        }
+      };
+      await Promise.all([worker(), worker(), worker()]);
+    }
+  } finally {
+    exScanning = false; saveExHas(); updateExInfo(); renderCatalog(false, true);
+    if (token === exScanToken && $('catHasEx').checked && exFail.size) $('catExInfo').textContent += ` · ตรวจไม่สำเร็จ ${exFail.size} รายงาน (ข้ามไป)`;
+  }
+}
 
 // ---- รายงานสรุป 1 หน้า A4 สำหรับพิมพ์ / บันทึกเป็น PDF ----
 function buildPrintReport() {
